@@ -8,10 +8,6 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error('Por favor, define la variable MONGODB_URI en el panel de Vercel o en .env.local');
-}
-
 /**
  * Global se usa aquí para mantener la conexión durante la recarga de módulos (Hot Reload) 
  * en modo desarrollo de Next.js.
@@ -23,6 +19,10 @@ if (!cached) {
 }
 
 async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error('Por favor, define la variable MONGODB_URI en el panel de Vercel o en .env.local');
+  }
+
   // Si ya hay una conexión activa, la reutilizamos
   if (cached.conn) return cached.conn;
 
