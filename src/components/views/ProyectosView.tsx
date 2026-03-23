@@ -51,52 +51,46 @@ const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any
     if (raw._id) loadFiles();
   }, [raw._id]);
 
+  const [newFileUrl, setNewFileUrl] = useState('');
+  const [newFileName, setNewFileName] = useState('');
+
   // Upload file to MongoDB
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setFileFeedback('⚠️ El archivo excede 10MB.');
+  const handleFileUpload = async () => {
+    if (!newFileName.trim() || !newFileUrl.trim()) {
+      setFileFeedback('⚠️ Ingresa un nombre y el link de Google Drive.');
       setTimeout(() => setFileFeedback(null), 3000);
       return;
     }
     setIsUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1];
         const res = await fetch('/api/files', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             projectId: raw._id,
             empresaId: raw.empresaId,
-            nombre: file.name,
+            nombre: newFileName.trim(),
             tipo: fileType,
-            mimeType: file.type,
-            size: file.size,
-            data: base64
+            url: newFileUrl.trim()
           })
         });
         if (res.ok) {
           const saved = await res.json();
           setFiles(prev => [saved, ...prev]);
-          setFileFeedback('✅ Archivo guardado en MongoDB.');
+          setFileFeedback('✅ Enlace guardado en MongoDB.');
+          setNewFileName('');
+          setNewFileUrl('');
         } else {
           const err = await res.json();
           setFileFeedback(`⚠️ ${err.error}`);
         }
         setTimeout(() => setFileFeedback(null), 3000);
         setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
     } catch (err) {
-      setFileFeedback('⚠️ Error al subir archivo.');
+      setFileFeedback('⚠️ Error al guardar el enlace.');
       setTimeout(() => setFileFeedback(null), 3000);
       setIsUploading(false);
     }
-    // Reset input
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Delete file from MongoDB
@@ -287,15 +281,15 @@ const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any
             <div className="space-y-2">
               {files.map((f: any) => (
                 <div key={f._id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-gray-900/50 rounded-lg group">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <FileText size={14} className="text-purple-500 shrink-0" />
+                  <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80">
+                    <ExternalLink size={14} className="text-blue-500 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{f.nombre}</p>
+                      <p className="text-xs font-medium text-blue-600 dark:text-blue-400 truncate hover:underline">{f.nombre}</p>
                       <p className="text-[10px] text-slate-400">
-                        {fileTypeLabels[f.tipo] || f.tipo} · {f.size ? formatSize(f.size) : '—'} · {new Date(f.createdAt).toLocaleDateString()}
+                        {fileTypeLabels[f.tipo] || f.tipo} · {new Date(f.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                  </div>
+                  </a>
                   <button onClick={() => handleDeleteFile(f._id)}
                     className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-1" title="Eliminar">
                     <Trash2 size={12} />
@@ -303,24 +297,30 @@ const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any
                 </div>
               ))}
 
-              {/* Upload Controls */}
+              {/* Link Controls */}
               <div className="border-t border-slate-100 dark:border-gray-700 pt-3 mt-2 space-y-2">
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <select value={fileType} onChange={e => setFileType(e.target.value)}
                     className="bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs outline-none text-slate-700 dark:text-slate-300">
                     {fileTypeOptions.map(opt => <option key={opt} value={opt}>{fileTypeLabels[opt]}</option>)}
                   </select>
+                  <input type="text" value={newFileName} onChange={e => setNewFileName(e.target.value)}
+                    className="flex-1 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs outline-none text-slate-700 dark:text-slate-300 min-w-[120px]"
+                    placeholder="Nombre del Doc" />
+                  <input type="url" value={newFileUrl} onChange={e => setNewFileUrl(e.target.value)}
+                    className="flex-[2] bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs outline-none text-slate-700 dark:text-slate-300 min-w-[200px]"
+                    placeholder="Link púb. de Google Drive"
+                    onKeyDown={e => e.key === 'Enter' && handleFileUpload()} />
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={handleFileUpload}
                     disabled={isUploading}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                    className="flex items-center justify-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
                   >
-                    {isUploading ? <><Loader2 size={12} className="animate-spin" /> Subiendo...</> : <><Upload size={12} /> Subir Archivo</>}
+                    {isUploading ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                    Guardar
                   </button>
                 </div>
-                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.zip" />
-                <p className="text-[10px] text-slate-400 text-center">PDF, Office, Imagen, Video · Máx 10MB · Se guarda en MongoDB</p>
+                <p className="text-[10px] text-slate-400 text-center">Pega un enlace público de Google Drive ("Cualquier persona con el enlace").</p>
               </div>
             </div>
           </div>

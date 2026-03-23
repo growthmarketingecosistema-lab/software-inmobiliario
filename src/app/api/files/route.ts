@@ -16,8 +16,7 @@ export async function GET(req: Request) {
         if (!projectId) return NextResponse.json({ error: 'projectId requerido' }, { status: 400 });
 
         await connectDB();
-        // Return metadata only (no base64 data) for listing
-        const files = await ProjectFile.find({ projectId }).select('-data').sort({ createdAt: -1 }).lean();
+        const files = await ProjectFile.find({ projectId }).sort({ createdAt: -1 }).lean();
         return NextResponse.json(files);
     } catch (error) {
         return NextResponse.json({ error: 'Error al listar archivos' }, { status: 500 });
@@ -28,15 +27,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { projectId, empresaId, nombre, tipo, mimeType, size, data } = body;
+        const { projectId, empresaId, nombre, tipo, url } = body;
 
-        if (!projectId || !nombre || !data) {
-            return NextResponse.json({ error: 'projectId, nombre y data son requeridos' }, { status: 400 });
-        }
-
-        // Max 10MB encoded
-        if (data.length > 14_000_000) {
-            return NextResponse.json({ error: 'Archivo demasiado grande (máx 10MB)' }, { status: 400 });
+        if (!projectId || !nombre || !url) {
+            return NextResponse.json({ error: 'projectId, nombre y url son requeridos' }, { status: 400 });
         }
 
         await connectDB();
@@ -45,14 +39,10 @@ export async function POST(req: Request) {
             empresaId: empresaId || '',
             nombre,
             tipo: tipo || 'documento',
-            mimeType: mimeType || 'application/octet-stream',
-            size: size || 0,
-            data
+            url
         });
 
-        // Return without the data field
-        const { data: _, ...meta } = file.toObject();
-        return NextResponse.json(meta);
+        return NextResponse.json(file);
     } catch (error) {
         return NextResponse.json({ error: 'Error al subir archivo' }, { status: 500 });
     }

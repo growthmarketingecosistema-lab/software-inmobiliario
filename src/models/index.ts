@@ -293,14 +293,13 @@ const BuyerPersonaSchema = new Schema({
 }, { timestamps: true });
 
 // 13. Archivos de Proyecto
+// 13. Archivos de Proyecto
 const ProjectFileSchema = new Schema({
     projectId: { type: String, required: true, index: true },
     empresaId: { type: String, required: true, index: true },
     nombre: { type: String, required: true },
     tipo: { type: String, default: 'documento' }, // documento, ficha_tecnica, brochure, comercial, apoyo
-    mimeType: { type: String },
-    size: { type: Number },
-    data: { type: String }, // base64 encoded file content
+    url: { type: String, required: true }, // Google Drive public link
 }, { timestamps: true });
 
 // --- Exports ---
