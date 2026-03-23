@@ -139,7 +139,7 @@ const CompanySchema = new Schema({
 const ProjectSchema = new Schema({
     empresaId: { type: String, required: true, index: true },
     nombre: { type: String, required: true },
-    tipo_proyecto: { type: String, required: true, enum: ['Marca de proyecto', 'Proyecto simple', 'Masterplan'] },
+    tipo_proyecto: { type: String, required: true },
     descripcion: { type: String },
     estado_comercial: { type: String, required: true, default: 'Activo' },
     branding: {

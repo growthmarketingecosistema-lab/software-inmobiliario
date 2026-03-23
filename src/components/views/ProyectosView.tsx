@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { FolderKanban, Plus, ExternalLink, X, Building2 } from 'lucide-react';
+import { FolderKanban, Plus, ExternalLink, X, Building2, Trash2 } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -29,6 +29,7 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectType, setNewProjectType] = useState(brandTypes['Fortress'][0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const proyectosGlobales = appData?.proyectos || [];
 
@@ -70,12 +71,32 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
       if (res.ok) {
         setIsModalOpen(false);
         setNewProjectName('');
+        setFeedback({ type: 'success', msg: '¡Proyecto creado exitosamente!' });
+        setTimeout(() => setFeedback(null), 4000);
+        if (refreshData) await refreshData();
+      } else {
+        const errBody = await res.json().catch(() => ({}));
+        setFeedback({ type: 'error', msg: errBody.error || 'Error al crear proyecto.' });
+      }
+    } catch (e) {
+      console.error(e);
+      setFeedback({ type: 'error', msg: 'Error de conexión.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('¿Seguro que quieres eliminar este proyecto?')) return;
+    try {
+      const res = await fetch(`/api/proyectos?id=${projectId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFeedback({ type: 'success', msg: 'Proyecto eliminado.' });
+        setTimeout(() => setFeedback(null), 3000);
         if (refreshData) await refreshData();
       }
     } catch (e) {
       console.error(e);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -116,6 +137,16 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
           Nuevo Proyecto
         </button>
       </div>
+
+      {feedback && (
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium animate-slide-in-up ${
+          feedback.type === 'success' 
+            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' 
+            : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+        }`}>
+          {feedback.msg}
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-800 mb-6">
@@ -195,9 +226,18 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
                           <ExternalLink size={16} /> Comando de Marca
                         </button>
                       ) : (
-                        <button className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline flex items-center gap-1">
-                          Gestionar <ExternalLink size={14} />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline flex items-center gap-1">
+                            Gestionar <ExternalLink size={14} />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id); }}
+                            className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-400 transition-colors"
+                            title="Eliminar proyecto"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>

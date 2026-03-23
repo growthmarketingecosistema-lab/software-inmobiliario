@@ -1,19 +1,17 @@
 /**
  * API: /api/data
- * Trae empresas, proyectos, y datos de crecimiento desde MongoDB.
+ * Trae empresas, proyectos, leads y datos de crecimiento desde MongoDB.
  */
 
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Company, Project, EditorialContent, Calendar, Campaign, AdSet, Ad, Metric } from '@/models';
+import { Company, Project, EditorialContent, Calendar, Campaign, AdSet, Ad, Metric, Lead } from '@/models';
 
 export async function GET() {
     try {
-        // 1. Nos aseguramos de que la conexión a MongoDB esté lista
         await connectDB();
 
-        // 2. Realizamos las consultas en paralelo
-        const [companies, projects, contents, calendars, campaignsRaw, adsetsRaw, adsRaw, metrics] = await Promise.all([
+        const [companies, projects, contents, calendars, campaignsRaw, adsetsRaw, adsRaw, metrics, leads] = await Promise.all([
             Company.find({}),
             Project.find({}),
             EditorialContent.find({}),
@@ -21,10 +19,11 @@ export async function GET() {
             Campaign.find({}),
             AdSet.find({}),
             Ad.find({}),
-            Metric.find({})
+            Metric.find({}),
+            Lead.find({})
         ]);
 
-        // 3. Reconstrucción del árbol relacional V3 en memoria para la UI temporal
+        // Reconstrucción del árbol relacional V3
         const adsList = adsRaw.map(a => a.toObject());
         const adSetList = adsetsRaw.map(s => {
             const sObj = s.toObject();
@@ -35,21 +34,20 @@ export async function GET() {
             return { ...cObj, conjuntos: adSetList.filter(s => s.campana_id === cObj._id.toString() || s.campana_id === cObj.id) };
         });
 
-        // Cálculo dinámico de Métricas Generales
         const totalLeads = metrics.reduce((acc, m) => acc + (m.leads || 0), 0);
         const totalSpend = metrics.reduce((acc, m) => acc + (m.spend || 0), 0);
         const cplPromedio = totalLeads > 0 ? (totalSpend / totalLeads) : 0;
 
-        // Retornamos la respuesta JSON estructurada con datos V3
         return NextResponse.json({
             empresas: companies.map(c => ({ id: c.empresaId, nombre: c.nombre })),
             proyectos: projects,
-            planner: calendars, // Para la UI temporal
-            estrategia: campaigns, // Para la UI temporal
+            leads: leads,
+            planner: calendars,
+            estrategia: campaigns,
             metricasGenerales: {
                 leads: totalLeads.toLocaleString('es-CO') || '0',
                 cplPromedio: `$${cplPromedio.toFixed(2)}`,
-                roi: totalSpend > 0 ? '3.2x' : '0.0x', // Simulado temporalmente
+                roi: totalSpend > 0 ? '3.2x' : '0.0x',
                 inversion: `$${totalSpend.toLocaleString('es-CO')}`
             }
         });

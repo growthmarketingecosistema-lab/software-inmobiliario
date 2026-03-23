@@ -1,26 +1,37 @@
 /**
  * API: /api/identidad
  * Acción: Actualiza la Identidad de Marca (ADN) y los Buyer Personas.
- * Utiliza 'upsert' (actualizar o crear si no existe) basado en el empresaId.
+ * Persiste los datos en la colección de Company en MongoDB.
  */
 
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-// Modelos V3 no incluyen BrandIdentity de momento, mockeando la respuesta
-
+import { Company } from '@/models';
 
 export async function PUT(req: Request) {
     try {
-        // Obtenemos el empresaId y los nuevos datos del cuerpo del request
-        const { empresaId, base, personas } = await req.json();
-
-        // Conexión a MongoDB (mantenemos para asegurar instancia)
+        const { empresaId, base } = await req.json();
         await connectDB();
 
-        // [MOCK TEMPORAL V3 - LOGICA A IMPLEMENTAR LUEGO CON NUEVO MODELO]
-        console.log("Mock Identity Update V3 para empresa:", empresaId);
+        // Guardamos la identidad como campos extra en la empresa
+        const updated = await Company.findOneAndUpdate(
+            { empresaId },
+            {
+                $set: {
+                    'identidad.esencia': base?.esencia || '',
+                    'identidad.nicho': base?.nicho || '',
+                    'identidad.propuesta': base?.propuesta || '',
+                    'identidad.tono': base?.tono || '',
+                }
+            },
+            { new: true, upsert: false }
+        );
 
-        return NextResponse.json({ success: true, base, personas, empresaId });
+        if (!updated) {
+            return NextResponse.json({ error: 'Empresa no encontrada' }, { status: 404 });
+        }
+
+        return NextResponse.json({ success: true, empresaId, identidad: updated });
     } catch (error) {
         console.error("Error en API PUT /api/identidad:", error);
         return NextResponse.json({ error: 'Error al actualizar identidad' }, { status: 500 });

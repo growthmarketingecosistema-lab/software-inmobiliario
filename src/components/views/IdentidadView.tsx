@@ -6,18 +6,29 @@ import { Fingerprint, Plus } from 'lucide-react';
 export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => {
   const [base, setBase] = useState({ queEs: '', nicho: '', propuesta: '', tono: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const handleSave = async () => {
     setIsSubmitting(true);
+    setFeedback(null);
     try {
       const res = await fetch('/api/identidad', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ empresaId: currentEmpresa.id, base, personas: [] })
+        body: JSON.stringify({
+          empresaId: currentEmpresa.id,
+          base: { esencia: base.queEs, nicho: base.nicho, propuesta: base.propuesta, tono: base.tono }
+        })
       });
-      if (res.ok && refreshData) await refreshData();
+      if (res.ok) {
+        setFeedback({ type: 'success', msg: '¡ADN de marca guardado exitosamente!' });
+        if (refreshData) await refreshData();
+      } else {
+        setFeedback({ type: 'error', msg: 'Error al guardar. Intenta de nuevo.' });
+      }
     } catch (e) {
       console.error(e);
+      setFeedback({ type: 'error', msg: 'Error de conexión.' });
     } finally {
       setIsSubmitting(false);
     }

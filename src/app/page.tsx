@@ -125,13 +125,13 @@ export default function Home() {
       case "metricas":
         return <PanelAnaliticoView currentEmpresa={currentEmpresa} appData={appData} />;
       case "preventa":
-        return <PreVentaView currentEmpresa={currentEmpresa} />;
+        return <PreVentaView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "ventas":
-        return <VentasView currentEmpresa={currentEmpresa} onConvert={() => setCurrentView('posventa')} />;
+        return <VentasView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} onConvert={() => setCurrentView('posventa')} />;
       case "calendario":
         return <CalendarioView currentEmpresa={currentEmpresa} />;
       case "posventa":
-        return <PosventaView currentEmpresa={currentEmpresa} />;
+        return <PosventaView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "proyectos":
         return <ProyectosView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} onOpenComandoMarca={() => setCurrentView('comando_marca')} />;
       case "comando_marca":
