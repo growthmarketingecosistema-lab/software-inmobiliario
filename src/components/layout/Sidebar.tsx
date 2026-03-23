@@ -16,7 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, i
     { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
     { id: 'identidad', label: 'Identidad corporativa', icon: Fingerprint },
     { id: 'proyectos', label: 'Proyectos y Marcas', icon: FolderKanban },
-    { id: 'estrategia', label: 'Central de Campañas', icon: Megaphone },
+    { id: 'estrategia', label: 'Estrategia de Proyectos', icon: Megaphone },
     { id: 'planner', label: 'Calendario Mixto', icon: CalendarDays },
     { id: 'motor_ia', label: 'Motor IA', icon: BrainCircuit },
     { id: 'metricas', label: 'Panel analítico', icon: BarChart3 },

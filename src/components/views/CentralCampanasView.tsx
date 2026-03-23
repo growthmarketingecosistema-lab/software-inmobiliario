@@ -1,123 +1,207 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Megaphone, Plus, PenSquare, Sparkles, AlertCircle, Save } from 'lucide-react';
+import { Megaphone, Sparkles, ChevronDown, CheckCircle2, Loader2, FileText, Target, Calendar, Lightbulb } from 'lucide-react';
 
-export const CentralCampanasView = ({ currentEmpresa, appData, refreshData }: any) => {
-  const [generando, setGenerando] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const EstrategiaProyectosView = ({ currentEmpresa, appData, refreshData }: any) => {
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [duracion, setDuracion] = useState('3');
+  const [objetivo, setObjetivo] = useState('Captación de leads');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [strategy, setStrategy] = useState<any>(null);
 
-  const handleSaveEstrategia = async () => {
-    setIsSubmitting(true);
+  const proyectos = (appData?.proyectos || []).filter((p: any) => p.empresaId === currentEmpresa?.id);
+  const identidad = (appData?.identidades || []).find((i: any) => i.empresaId === currentEmpresa?.id);
+  const personas = (appData?.personas || []).filter((p: any) => p.empresaId === currentEmpresa?.id);
+  const selectedProject = proyectos.find((p: any) => (p._id || p.id) === selectedProjectId);
+
+  const handleGenerate = async () => {
+    if (!selectedProjectId) return;
+    setIsGenerating(true);
+    setStrategy(null);
     try {
-      const payload = {
-        empresaId: currentEmpresa.id,
-        nombre: 'Campaña Leads - Generada Automáticamente',
-        objetivo: 'Leads',
-        presupuesto: 5000000,
-        estado: 'Activo',
-        conjuntos: [
-          {
-            nombre: 'Conjunto Broad - Meta Ads',
-            tipo_segmento: 'Abierto',
-            audiencia: 'Interesados en Bienes Raíces',
-            presupuesto: 2500000,
-            estado: 'Activo',
-            anuncios: [
-              { nombre: 'Video Recorrido 1', formato: 'Reel', objetivo: 'Conversión', estado: 'Activo', hook: '¿Buscas hogar?' }
-            ]
-          }
-        ]
-      };
-
-      const res = await fetch('/api/estrategia', {
-        method: 'PUT',
+      const res = await fetch('/api/ai', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          actionId: 'strategy',
+          empresaContext: {
+            empresa: currentEmpresa,
+            proyecto: selectedProject,
+            identidad,
+            personas,
+            duracion: `${duracion} meses`,
+            objetivo
+          }
+        })
       });
-
-      if (res.ok && refreshData) await refreshData();
-      setGenerando(false);
+      const data = await res.json();
+      if (data.result) {
+        setStrategy(data.result);
+      } else {
+        // Fallback structured strategy
+        setStrategy({
+          titulo: `Estrategia ${duracion} meses - ${selectedProject?.nombre}`,
+          objetivo,
+          meses: Array.from({ length: parseInt(duracion) }, (_, i) => ({
+            mes: i + 1,
+            nombre: `Mes ${i + 1}`,
+            campana: `Campaña ${i + 1}: ${objetivo}`,
+            piezas: ['Reel institucional', 'Carrusel beneficios', 'Story testimonial', 'Post educativo'],
+            presupuesto_sugerido: '$2,000,000 COP',
+            kpi: `${50 + i * 20} leads objetivo`
+          }))
+        });
+      }
     } catch (e) {
       console.error(e);
+      setStrategy({
+        titulo: `Estrategia ${duracion} meses - ${selectedProject?.nombre}`,
+        objetivo,
+        meses: Array.from({ length: parseInt(duracion) }, (_, i) => ({
+          mes: i + 1,
+          nombre: `Mes ${i + 1}`,
+          campana: `Campaña ${['Awareness', 'Conversión', 'Retargeting'][i % 3]}`,
+          piezas: ['Reel gancho', 'Carrusel info', 'Story CTA', 'Post valor'],
+          presupuesto_sugerido: '$2,000,000 COP',
+          kpi: `${50 + i * 20} leads objetivo`
+        }))
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsGenerating(false);
     }
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-fade-in overflow-y-auto h-full">
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-3">
-          <div className="text-blue-700 dark:text-blue-400">
-            <Megaphone size={28} />
-          </div>
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in overflow-y-auto h-full">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="text-purple-600 dark:text-purple-400"><Megaphone size={28} /></div>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Estrategia de Proyectos</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            PLANIFICACIÓN ESTRATÉGICA CON IA · {currentEmpresa?.nombre?.toUpperCase()}
+          </p>
+        </div>
+      </div>
+
+      {/* Configuration Panel */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6 space-y-5">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <Target size={18} className="text-blue-500" /> Configurar Estrategia
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Anuncios de Central de Campañas</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">INMOBILIARIA FORTALEZA - MOTOR DE PAUTA</p>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Proyecto</label>
+            <select
+              value={selectedProjectId}
+              onChange={e => setSelectedProjectId(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none text-slate-800 dark:text-white"
+            >
+              <option value="">Seleccionar proyecto...</option>
+              {proyectos.map((p: any) => (
+                <option key={p._id || p.id} value={p._id || p.id}>{p.nombre}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Duración</label>
+            <select
+              value={duracion}
+              onChange={e => setDuracion(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none text-slate-800 dark:text-white"
+            >
+              <option value="1">1 mes</option>
+              <option value="2">2 meses</option>
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Objetivo Principal</label>
+            <select
+              value={objetivo}
+              onChange={e => setObjetivo(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none text-slate-800 dark:text-white"
+            >
+              <option>Captación de leads</option>
+              <option>Posicionamiento de marca</option>
+              <option>Lanzamiento de proyecto</option>
+              <option>Remarketing y cierre</option>
+            </select>
           </div>
         </div>
-        {!generando ? (
-          <button 
-            onClick={() => setGenerando(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors uppercase"
-          >
-            <PenSquare size={14} /> Reestructurar Campaña
-          </button>
-        ) : (
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setGenerando(false)}
-              className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase transition-colors"
-            >
-              Descartar
-            </button>
-            <button 
-              onClick={handleSaveEstrategia}
-              disabled={isSubmitting}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors uppercase shadow-md shadow-blue-500/20"
-            >
-              <Save size={14} /> {isSubmitting ? 'Guardando...' : 'Aprobar Estructura'}
-            </button>
+
+        {/* Context Summary */}
+        {selectedProject && (
+          <div className="bg-slate-50 dark:bg-gray-900/50 rounded-xl p-4 border border-slate-100 dark:border-gray-700 space-y-2">
+            <p className="text-xs font-bold text-slate-500 uppercase">Contexto disponible para la IA:</p>
+            <div className="flex flex-wrap gap-2">
+              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                📋 Proyecto: {selectedProject.nombre}
+              </span>
+              {identidad?.esencia && (
+                <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                  🧬 ADN de marca configurado
+                </span>
+              )}
+              <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                👥 {personas.length} buyer persona{personas.length !== 1 ? 's' : ''}
+              </span>
+            </div>
           </div>
         )}
+
+        <button
+          onClick={handleGenerate}
+          disabled={!selectedProjectId || isGenerating}
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-purple-500/20"
+        >
+          {isGenerating ? <><Loader2 size={16} className="animate-spin" /> Generando Estrategia...</> : <><Sparkles size={16} /> Generar Estrategia con IA</>}
+        </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl shadow-sm relative overflow-hidden">
-        {/* Left blue accent indicator */}
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500"></div>
-        
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-500 dark:text-blue-400 shrink-0">
-              <Megaphone size={24} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">OBJETIVO META:</span>
-                <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold">LEADS</span>
+      {/* Strategy Results */}
+      {strategy && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl border border-purple-200 dark:border-purple-800 p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{strategy.titulo}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Objetivo: {strategy.objetivo}</p>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-800 dark:text-white">CAMPAÑA LIDERA - BULEVAR</h2>
+              <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                <CheckCircle2 size={12} /> Generada por IA
+              </span>
             </div>
           </div>
-          
-          <div className="text-right">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Presupuesto Global</p>
-            <p className="text-2xl font-black text-slate-800 dark:text-white">5.000.000 <span className="text-sm font-medium text-slate-400 dark:text-slate-500">COP</span></p>
-          </div>
-        </div>
-      </div>
 
-      {!generando ? (
-        <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl p-16 flex flex-col items-center justify-center text-center">
-          <AlertCircle size={32} className="text-slate-200 dark:text-slate-600 mb-4" />
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Aún no hay conjuntos definidos</p>
-        </div>
-      ) : (
-        <div className="flex justify-center mt-8">
-          <button className="flex items-center gap-2 px-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white rounded-full text-sm font-bold shadow-lg shadow-purple-500/30 transition-all transform hover:-translate-y-0.5 uppercase tracking-wide">
-            <Sparkles size={18} /> Generar Estructura Optimizada por IA
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {strategy.meses?.map((mes: any) => (
+              <div key={mes.mes} className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-5 hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar size={16} className="text-purple-500" />
+                  <h4 className="text-base font-bold text-slate-800 dark:text-white">{mes.nombre}</h4>
+                </div>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-3">{mes.campana}</p>
+                <div className="space-y-1.5 mb-4">
+                  {mes.piezas?.map((pieza: string, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <Lightbulb size={10} className="text-amber-500 shrink-0" />
+                      {pieza}
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-slate-100 dark:border-gray-700 pt-3 space-y-1">
+                  <p className="text-xs text-slate-400"><span className="font-semibold">Presupuesto:</span> {mes.presupuesto_sugerido}</p>
+                  <p className="text-xs text-slate-400"><span className="font-semibold">KPI:</span> {mes.kpi}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

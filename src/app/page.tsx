@@ -10,7 +10,7 @@ import { DashboardView } from "@/components/views/DashboardView";
 import { IdentidadView } from "@/components/views/IdentidadView";
 import { ProyectosView } from "@/components/views/ProyectosView";
 import { ComandoMarcaView } from "@/components/views/ComandoMarcaView";
-import { CentralCampanasView } from "@/components/views/CentralCampanasView";
+import { EstrategiaProyectosView } from "@/components/views/CentralCampanasView";
 import { CalendarioMixtoView } from "@/components/views/CalendarioMixtoView";
 import { MotorIaView } from "@/components/views/MotorIaView";
 import { PanelAnaliticoView } from "@/components/views/PanelAnaliticoView";
@@ -117,11 +117,11 @@ export default function Home() {
       case "identidad":
         return <IdentidadView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "estrategia":
-        return <CentralCampanasView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
+        return <EstrategiaProyectosView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "planner":
         return <CalendarioMixtoView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "motor_ia":
-        return <MotorIaView currentEmpresa={currentEmpresa} />;
+        return <MotorIaView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "metricas":
         return <PanelAnaliticoView currentEmpresa={currentEmpresa} appData={appData} />;
       case "preventa":
@@ -129,7 +129,7 @@ export default function Home() {
       case "ventas":
         return <VentasView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} onConvert={() => setCurrentView('posventa')} />;
       case "calendario":
-        return <CalendarioView currentEmpresa={currentEmpresa} />;
+        return <CalendarioView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "posventa":
         return <PosventaView currentEmpresa={currentEmpresa} appData={appData} refreshData={loadData} />;
       case "proyectos":

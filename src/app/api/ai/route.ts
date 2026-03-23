@@ -52,6 +52,34 @@ export async function POST(req: Request) {
                 3. CTA (Llamado a la acción)
                 Incluye ideas de elementos visuales (b-roll o texto en pantalla).`;
                 break;
+            case 'strategy':
+                systemPrompt = "Eres un estratega de marketing inmobiliario experto. Creas planes de campaña mensuales detallados basados en la identidad de marca, buyer personas y contexto del proyecto. Respondes en español. Devuelves SOLO un JSON válido sin markdown.";
+                userPrompt = `Crea una estrategia de marketing de ${empresaContext.duracion || '3 meses'} para el proyecto "${empresaContext.proyecto?.nombre}" de la empresa "${empresaContext.empresa?.nombre}".
+                
+                CONTEXTO:
+                - Identidad: ${JSON.stringify(empresaContext.identidad || {})}
+                - Buyer Personas: ${JSON.stringify(empresaContext.personas || [])}
+                - Tipo de proyecto: ${empresaContext.proyecto?.tipo_proyecto}
+                - Objetivo principal: ${empresaContext.objetivo}
+                
+                Devuelve un JSON con esta estructura exacta:
+                {
+                  "titulo": "string",
+                  "objetivo": "string",
+                  "meses": [{ "mes": 1, "nombre": "Mes 1: Nombre", "campana": "Descripción", "piezas": ["pieza1", "pieza2"], "presupuesto_sugerido": "$X COP", "kpi": "X leads" }]
+                }`;
+                break;
+            case 'calendar_ideas':
+                systemPrompt = "Eres un content strategist especializado en bienes raíces. Generas ideas de contenido orgánico alineadas con la identidad de marca. Respondes en español. Devuelves SOLO un JSON válido sin markdown.";
+                userPrompt = `Genera ${empresaContext.cantidad || 20} ideas de contenido para el mes de ${empresaContext.mes || 'este mes'} para "${empresaContext.empresa?.nombre}".
+                
+                IDENTIDAD: ${JSON.stringify(empresaContext.identidad || {})}
+                BUYER PERSONAS: ${JSON.stringify(empresaContext.personas || [])}
+                
+                Tipos de contenido a incluir: Contenido de marca, Educativo, Prueba social, Fecha especial, Lifestyle, Comunidad.
+                
+                Devuelve un JSON: { "ideas": [{ "tema": "string", "tipo_contenido": "string", "formato": "Reel|Carrusel|Imagen|Story", "dia_sugerido": 1-30, "objetivo": "string" }] }`;
+                break;
             default:
                 userPrompt = "Hola, saluda efusivamente y preséntate como el asistente IA.";
         }
