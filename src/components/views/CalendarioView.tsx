@@ -1,189 +1,189 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Video, MapPin, X, RefreshCw, Star, Clock } from 'lucide-react';
+import { Calendar, Plus, X, FileText, Clock, CheckCircle2, AlertCircle, MapPin, User } from 'lucide-react';
 
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  type: 'fortress' | 'crescendo';
-  location: 'virtual' | 'presencial';
-  status: 'Programada' | 'Completada' | 'Cancelada' | 'Reprogramada';
-}
+export const CalendarioView = ({ currentEmpresa, appData, refreshData }: any) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [form, setForm] = useState({ leadNombre: '', fecha: '', hora: '10:00', ubicacion: '', notas: '', tipo: 'Visita' });
 
-const mockEvents: Event[] = [
-  { id: '1', title: 'Visita Apartamento Norte - Luis Gómez', date: '2023-10-25', time: '15:00', type: 'crescendo', location: 'presencial', status: 'Programada' },
-  { id: '2', title: 'Estructuración Inv. - Carlos Ramírez', date: '2023-10-26', time: '10:00', type: 'fortress', location: 'virtual', status: 'Programada' },
-];
+  // Simulated visits from leads data
+  const leads = (appData?.leads || []).filter((l: any) => l.empresaId === currentEmpresa?.id);
+  const [visitas, setVisitas] = useState<any[]>([]);
 
-export const CalendarioView: React.FC<any> = ({ currentEmpresa }) => {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const handleCreateVisita = async () => {
+    if (!form.leadNombre || !form.fecha) return;
+    setIsSubmitting(true);
+    try {
+      // Save to local state (in a full implementation, this would be an API call)
+      const newVisita = {
+        id: Date.now().toString(),
+        ...form,
+        estado: 'Programada',
+        createdAt: new Date().toISOString()
+      };
+      setVisitas(prev => [...prev, newVisita]);
+      setIsModalOpen(false);
+      setForm({ leadNombre: '', fecha: '', hora: '10:00', ubicacion: '', notas: '', tipo: 'Visita' });
+      setFeedback({ type: 'success', msg: '¡Visita programada exitosamente!' });
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (e) {
+      setFeedback({ type: 'error', msg: 'Error al programar visita.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-  // Simplified calendar grid logic for demonstration
-  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  const dates = Array.from({ length: 35 }, (_, i) => i - 2); // mockup dates
-  
+  const markVisitaCompleted = (id: string) => {
+    setVisitas(prev => prev.map(v => v.id === id ? { ...v, estado: 'Completada' } : v));
+  };
+
   return (
-    <div className="p-8 h-full flex flex-col relative">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendario y Bitácora</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Sincronizado con Outlook Exchange</p>
+    <div className="p-8 max-w-7xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
+          <Calendar size={28} className="text-blue-600 dark:text-blue-400" />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Calendario y Bitácora</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+              GESTIÓN DE VISITAS Y ACTIVIDADES COMERCIALES
+            </p>
+          </div>
         </div>
-        
-        <button className="flex items-center gap-2 bg-[#0078D4] hover:bg-[#106EBE] text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors">
-          <RefreshCw size={18} />
-          Sincronizar Outlook
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors uppercase"
+        >
+          <Plus size={14} /> Programar Visita
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex flex-col overflow-hidden">
-        {/* Calendar Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Octubre 2023</h2>
-            <div className="flex gap-1">
-              <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronLeft size={20} /></button>
-              <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-400"><ChevronRight size={20} /></button>
-            </div>
-          </div>
-          <div className="flex gap-2 bg-gray-100 dark:bg-gray-900/50 p-1 rounded-lg">
-            <button className="px-3 py-1 bg-white dark:bg-gray-800 rounded shadow-sm text-sm font-medium dark:text-white">Mes</button>
-            <button className="px-3 py-1 text-gray-600 dark:text-gray-400 text-sm font-medium">Semana</button>
-          </div>
+      {feedback && (
+        <div className={`px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
+          feedback.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+            : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
+        }`}>
+          {feedback.type === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />} {feedback.msg}
         </div>
+      )}
 
-        {/* Calendar Grid */}
-        <div className="flex-1 overflow-auto">
-          <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 sticky top-0 z-10">
-            {days.map(day => (
-              <div key={day} className="py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 last:border-0">
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 grid-rows-5 h-full">
-            {dates.map((date, idx) => {
-              const hasCrescendoEvent = date === 25;
-              const hasFortressEvent = date === 26;
-              const isCurrentMonth = date > 0 && date <= 31;
-              return (
-                <div key={idx} className={`border-r border-b border-gray-200 dark:border-gray-700 p-2 min-h-[100px] ${!isCurrentMonth ? 'bg-gray-50/50 dark:bg-gray-900/20' : ''}`}>
-                  <span className={`text-sm font-medium ${date === 25 ? 'bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full' : 'text-gray-700 dark:text-gray-300'}`}>
-                    {date > 0 && date <= 31 ? date : (date <= 0 ? 30 + date : date - 31)}
-                  </span>
-                  
-                  <div className="mt-2 space-y-1">
-                    {hasCrescendoEvent && (
-                      <div 
-                        onClick={() => setSelectedEvent(mockEvents[0])}
-                        className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#856c1d] dark:bg-[#D4AF37]/20 dark:text-[#e7c75c] text-xs px-2 py-1 rounded cursor-pointer hover:bg-[#D4AF37]/20 truncate"
-                      >
-                        15:00 Visita ...
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Visitas Programadas */}
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <Calendar size={18} className="text-blue-500" /> Visitas Programadas
+          </h3>
+
+          {visitas.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Calendar size={40} className="text-slate-300 dark:text-slate-600 mb-3" />
+              <p className="text-sm text-slate-400">No hay visitas programadas. Programa la primera.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {visitas.map(v => (
+                <div key={v.id} className={`rounded-xl p-4 border transition-colors ${
+                  v.estado === 'Completada' ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : 'bg-slate-50 dark:bg-gray-900/50 border-slate-200 dark:border-gray-700'
+                }`}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
+                        <User size={14} className="text-blue-500" /> {v.leadNombre}
+                      </h4>
+                      <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                        <span className="flex items-center gap-1"><Clock size={12} /> {v.fecha} {v.hora}</span>
+                        {v.ubicacion && <span className="flex items-center gap-1"><MapPin size={12} /> {v.ubicacion}</span>}
                       </div>
-                    )}
-                    {hasFortressEvent && (
-                      <div 
-                        onClick={() => setSelectedEvent(mockEvents[1])}
-                        className="bg-[#0f2027]/10 border border-[#0f2027]/20 text-[#0f2027] dark:bg-[#0f2027] dark:text-blue-300 dark:border-blue-900/50 text-xs px-2 py-1 rounded cursor-pointer hover:opacity-80 truncate"
-                      >
-                        10:00 Estruct...
-                      </div>
-                    )}
+                      {v.notas && <p className="text-xs text-slate-400 mt-2">{v.notas}</p>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        v.estado === 'Completada' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}>{v.estado}</span>
+                      {v.estado !== 'Completada' && (
+                        <button onClick={() => markVisitaCompleted(v.id)} className="text-emerald-500 hover:text-emerald-700 text-xs font-bold">
+                          Completar
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Leads Sidebar */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 uppercase tracking-wider">Leads Activos</h3>
+          {leads.length === 0 ? (
+            <p className="text-xs text-slate-400">Sin leads activos.</p>
+          ) : (
+            <div className="space-y-2">
+              {leads.slice(0, 10).map((lead: any) => (
+                <div key={lead._id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900/50">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-white">{lead.nombre}</p>
+                    <p className="text-[10px] text-slate-400">{lead.stage} • {lead.fuente}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setForm({ ...form, leadNombre: lead.nombre });
+                      setIsModalOpen(true);
+                    }}
+                    className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Agendar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Event/Bitacora Modal */}
-      {selectedEvent && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedEvent(null)} />
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-gray-200 dark:border-gray-800 animate-slide-in-up">
-            <div className={`h-2 ${selectedEvent.type === 'fortress' ? 'bg-[#0f2027]' : 'bg-[#D4AF37]'}`}></div>
-            
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{selectedEvent.title}</h2>
-                  <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1"><CalendarIcon size={14} /> {selectedEvent.date}</span>
-                    <span className="flex items-center gap-1"><Clock size={14} /> {selectedEvent.time}</span>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedEvent(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="flex gap-4 items-center">
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">Estado</label>
-                    <select className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
-                      <option>Programada</option>
-                      <option>Completada</option>
-                      <option>Cancelada</option>
-                      <option>Reprogramada</option>
-                    </select>
-                  </div>
-                  {selectedEvent.location === 'virtual' && (
-                    <div className="flex-1 flex items-end">
-                      <button className="w-full flex items-center justify-center gap-2 bg-[#464EB8] hover:bg-[#3B42A0] text-white p-2.5 rounded-lg text-sm font-medium transition-colors h-[42px]">
-                        <Video size={16} /> Teams
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wider">Calificación de Interés</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button key={star} className="text-gray-300 dark:text-gray-600 hover:text-yellow-400 dark:hover:text-yellow-500 transition-colors">
-                        <Star size={24} fill={star <= 3 ? 'currentColor' : 'none'} className={star <= 3 ? 'text-yellow-400' : ''} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedEvent.type === 'fortress' ? (
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">Capacidad de Inversión</label>
-                    <input type="text" placeholder="Ej. > 200M COP" className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">Inmuebles Mostrados</label>
-                    <input type="text" placeholder="Ej. Apto 302, Apto 405" className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 uppercase tracking-wider">Notas y Objeciones</label>
-                  <textarea 
-                    rows={4}
-                    placeholder="Escriba los resultados de la reunión..."
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  ></textarea>
-                </div>
-              </div>
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md z-10 overflow-hidden border border-gray-200 dark:border-gray-800 animate-slide-in-up">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Programar Visita</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
-            
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex justify-end gap-3">
-              <button 
-                onClick={() => setSelectedEvent(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm">
-                Guardar Resultados
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Nombre del Lead / Cliente</label>
+                <input type="text" value={form.leadNombre} onChange={e => setForm({ ...form, leadNombre: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm outline-none text-slate-800 dark:text-white" placeholder="Nombre del contacto" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Fecha</label>
+                  <input type="date" value={form.fecha} onChange={e => setForm({ ...form, fecha: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm outline-none text-slate-800 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Hora</label>
+                  <input type="time" value={form.hora} onChange={e => setForm({ ...form, hora: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm outline-none text-slate-800 dark:text-white" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Ubicación</label>
+                <input type="text" value={form.ubicacion} onChange={e => setForm({ ...form, ubicacion: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm outline-none text-slate-800 dark:text-white" placeholder="Dirección o nombre del sitio" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Notas</label>
+                <textarea value={form.notas} onChange={e => setForm({ ...form, notas: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg p-3 text-sm outline-none text-slate-800 dark:text-white min-h-[80px] resize-none" placeholder="Notas adicionales..." />
+              </div>
+              <button onClick={handleCreateVisita} disabled={isSubmitting || !form.leadNombre || !form.fecha}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-3 rounded-lg text-sm font-bold uppercase transition-colors">
+                {isSubmitting ? 'Programando...' : 'Programar Visita'}
               </button>
             </div>
           </div>

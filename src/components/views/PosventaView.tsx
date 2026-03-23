@@ -1,188 +1,155 @@
 "use client";
 
 import React, { useState } from 'react';
-import { CheckCircle, ArrowRight, Building2, Target, X, User, Phone, CheckSquare } from 'lucide-react';
+import { CheckSquare, Sparkles, Loader2, UserCheck, Mail, Phone, Star, Clock, FileText, TrendingUp } from 'lucide-react';
 
-interface WonLead {
-  id: string;
-  name: string;
-  brand: 'Fortress Investment' | 'Proyectos Crescendo';
-  dateStr: string;
-  value: string;
-}
+export const PosventaView = ({ currentEmpresa, appData, refreshData }: any) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
 
-const mockWonLeads: WonLead[] = [
-  { id: '1', name: 'Constructora Alfa', brand: 'Proyectos Crescendo', dateStr: '15 Oct 2023', value: 'Proyecto Integral' },
-  { id: '2', name: 'Inversiones Delta', brand: 'Fortress Investment', dateStr: '12 Oct 2023', value: '$850M COP' },
-  { id: '3', name: 'María Sandoval', brand: 'Proyectos Crescendo', dateStr: '10 Oct 2023', value: 'Casa Campestre' },
-];
-export const PosventaView: React.FC<any> = ({ currentEmpresa, appData, refreshData }) => {
-  const [selectedLead, setSelectedLead] = useState<any | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
+  const leads = (appData?.leads || []).filter((l: any) => l.empresaId === currentEmpresa?.id);
+  const clientesCerrados = leads.filter((l: any) => l.stage === 'cerrado_ganado');
+  const clientesContacto = leads.filter((l: any) => ['contactado', 'visita', 'negociacion'].includes(l.stage));
 
-  // Filtramos leads que hayan llegado a los stages finales de exito
-  const wonLeads = (appData?.leads || []).filter(
-    (l: any) => l.stage === 'Ganado' || l.stage === 'cerrado_ganado' || l.stage === 'Cierre'
-  );
-
-  const handleConvert = (lead: any) => {
-    setSelectedLead(lead);
-  };
-
-  const executeConversion = async (tipoProyecto: string) => {
-    if (!selectedLead) return;
-    setIsConverting(true);
+  const handleGenerateReport = async (client: any) => {
+    setSelectedClient(client);
+    setIsGenerating(true);
+    setAiReport(null);
     try {
-      // 1. Crear el proyecto en base al lead
-      await fetch('/api/proyectos', {
+      const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          empresaId: selectedLead.empresaId,
-          nombre: selectedLead.nombre,
-          tipo_proyecto: tipoProyecto,
-          estado_comercial: 'Lanzamiento'
+          actionId: 'default',
+          empresaContext: {
+            nombre: currentEmpresa?.nombre,
+            task: `Genera un informe ejecutivo de posventa para el cliente "${client.nombre}" que fue captado como lead por la fuente "${client.fuente}" con interés en "${client.proyectoInteres || 'productos inmobiliarios'}". Incluye:
+            1. Resumen del perfil del cliente
+            2. Recomendaciones de seguimiento (3 acciones concretas)
+            3. Estrategia de fidelización personalizada
+            4. Propuesta de cross-selling/up-selling
+            Sé conciso y práctico.`
+          }
         })
       });
-
-      // 2. Marcar el lead como convertido para sacarlo del funnel
-      await fetch('/api/leads', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedLead._id,
-          stage: 'Convertido_en_Proyecto'
-        })
-      });
-
-      if (refreshData) await refreshData();
-      setSelectedLead(null);
+      const data = await res.json();
+      setAiReport(data.data || data.message || 'Informe generado.');
     } catch (e) {
-      console.error(e);
+      setAiReport('Error al generar informe. Intenta de nuevo.');
     } finally {
-      setIsConverting(false);
+      setIsGenerating(false);
     }
   };
 
   return (
-    <div className="p-8 h-full flex flex-col">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-8 max-w-7xl mx-auto space-y-6 overflow-y-auto h-full">
+      <div className="flex items-center gap-3">
+        <CheckSquare size={28} className="text-emerald-600 dark:text-emerald-400" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Posventa y Operaciones</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Transición de Negocios Ganados a Operaciones</p>
-        </div>
-        <div className="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-4 py-2 rounded-lg flex items-center gap-2 border border-green-100 dark:border-green-800">
-          <CheckSquare size={18} />
-          <span className="font-semibold">{wonLeads.length} Negocios Cerrados</span>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Posventa y Operaciones</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            FIDELIZACIÓN · SEGUIMIENTO · INFORMES AUTOMÁTICOS
+          </p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex-1">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-            <tr>
-              <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white text-sm">Cliente / Negocio</th>
-              <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white text-sm">Marca Comercial</th>
-              <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white text-sm">Fecha Cierre / Valor</th>
-              <th className="px-6 py-4 font-semibold text-gray-900 dark:text-white text-sm text-right">Acción</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {wonLeads.map((lead: any) => (
-              <tr key={lead._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td className="px-6 py-5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                    <CheckCircle size={20} />
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-900 dark:text-white block">{lead.nombre}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
-                      <User size={12} /> Contacto validado
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-5">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${
-                    lead.empresaId === 'fortress' 
-                      ? 'bg-[#0f2027]/10 text-[#0f2027] border border-[#0f2027]/20 dark:bg-[#0f2027] dark:text-blue-300 dark:border-blue-900/50' 
-                      : 'bg-[#D4AF37]/10 text-[#856c1d] border border-[#D4AF37]/30 dark:bg-[#D4AF37]/20 dark:text-[#e7c75c]'
-                  }`}>
-                    {lead.empresaId === 'fortress' ? 'Fortress Investment' : 'Proyectos Crescendo'}
-                  </span>
-                </td>
-                <td className="px-6 py-5">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">{lead.valor || 'Ticket no resgistrado'}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(lead.updatedAt).toLocaleDateString()}</div>
-                </td>
-                <td className="px-6 py-5 text-right">
-                  <button 
-                    onClick={() => handleConvert(lead)}
-                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                  >
-                    Convertir a Proyecto <ArrowRight size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {wonLeads.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                  No hay negocios cerrados listos para convetir.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-5 border border-emerald-200 dark:border-emerald-800">
+          <div className="flex items-center gap-2 mb-2">
+            <UserCheck size={18} className="text-emerald-600" />
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Clientes Cerrados</span>
+          </div>
+          <p className="text-3xl font-black text-emerald-700 dark:text-emerald-400">{clientesCerrados.length}</p>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-5 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={18} className="text-blue-600" />
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">En Proceso</span>
+          </div>
+          <p className="text-3xl font-black text-blue-700 dark:text-blue-400">{clientesContacto.length}</p>
+        </div>
+        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-5 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center gap-2 mb-2">
+            <Star size={18} className="text-purple-600" />
+            <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">Total Leads</span>
+          </div>
+          <p className="text-3xl font-black text-purple-700 dark:text-purple-400">{leads.length}</p>
+        </div>
       </div>
 
-      {/* Convert to Project Modal */}
-      {selectedLead && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedLead(null)} />
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg z-10 overflow-hidden border border-gray-200 dark:border-gray-800 animate-slide-in-up">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Convertir a Entregable Operativo</h2>
-              <button onClick={() => setSelectedLead(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <X size={20} />
-              </button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Clientes */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Clientes y Leads</h3>
+          {leads.length === 0 ? (
+            <div className="text-center py-12">
+              <UserCheck size={40} className="text-slate-300 mx-auto mb-3" />
+              <p className="text-sm text-slate-400">No hay clientes registrados.</p>
             </div>
-            
-            <div className="p-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
-                Cliente: <span className="font-semibold text-gray-900 dark:text-white">{selectedLead.name}</span>
-              </p>
-              
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Selecciona la naturaleza de la entrega:</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button 
-                  onClick={() => executeConversion('Marca de proyecto')}
-                  disabled={isConverting}
-                  className="flex flex-col items-center text-center p-5 border-2 border-transparent hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all group"
+          ) : (
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+              {leads.map((lead: any) => (
+                <div key={lead._id} className={`rounded-xl p-4 border cursor-pointer transition-all ${
+                  selectedClient?._id === lead._id ? 'border-purple-500 bg-purple-50/50 dark:bg-purple-900/10' : 'border-slate-100 dark:border-gray-700 hover:border-slate-300'
+                }`}
+                  onClick={() => setSelectedClient(lead)}
                 >
-                  <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-110 transition-transform shadow-sm">
-                    <Building2 size={24} />
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-800 dark:text-white">{lead.nombre}</h4>
+                      <p className="text-xs text-slate-400 mt-0.5">{lead.fuente} • {lead.proyectoInteres || 'Sin proyecto'}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                        lead.stage === 'cerrado_ganado' ? 'bg-emerald-100 text-emerald-700' :
+                        lead.stage === 'nuevo' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>{lead.stage}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleGenerateReport(lead); }}
+                        disabled={isGenerating}
+                        className="text-purple-500 hover:text-purple-700 text-[10px] font-bold flex items-center gap-1"
+                      >
+                        <FileText size={12} /> Informe IA
+                      </button>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-2">{isConverting ? 'Procesando...' : 'Marca de Proyecto'}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Estrategia a largo plazo. Ideal para desarrollos continuos y marcas madre.</p>
-                </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-                <button 
-                  onClick={() => executeConversion('Proyecto simple')}
-                  disabled={isConverting}
-                  className="flex flex-col items-center text-center p-5 border-2 border-transparent hover:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-all group"
-                >
-                  <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-110 transition-transform shadow-sm">
-                    <Target size={24} />
-                  </div>
-                  <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-2">{isConverting ? 'Procesando...' : 'Proyecto Corto'}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Entregable puntual o campaña específica con inicio y fin definidos.</p>
-                </button>
+        {/* AI Report Panel */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <Sparkles size={18} className="text-purple-500" /> Informe IA
+          </h3>
+
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 size={32} className="text-purple-500 animate-spin mb-3" />
+              <p className="text-sm text-slate-400">Generando informe para {selectedClient?.nombre}...</p>
+            </div>
+          ) : aiReport ? (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">Informe: {selectedClient?.nombre}</span>
+              </div>
+              <div className="bg-slate-50 dark:bg-gray-900/50 rounded-xl p-4 border border-slate-200 dark:border-gray-700 max-h-[400px] overflow-y-auto">
+                <pre className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-sans leading-relaxed">{aiReport}</pre>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <FileText size={40} className="text-slate-300 dark:text-slate-600 mb-3" />
+              <p className="text-sm text-slate-400">Selecciona un cliente y haz clic en "Informe IA" para generar un reporte automático de seguimiento.</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
