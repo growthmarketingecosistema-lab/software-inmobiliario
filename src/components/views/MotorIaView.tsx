@@ -1,11 +1,35 @@
 "use client";
 
-import React from 'react';
-import { BrainCircuit, Zap, Sparkles, Wand2, Video } from 'lucide-react';
+import React, { useState } from 'react';
+import { BrainCircuit, Zap, Sparkles, Wand2, Video, CheckCircle2 } from 'lucide-react';
 
 export const MotorIaView = ({ currentEmpresa }: any) => {
+  const [runningModel, setRunningModel] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const handleRunModel = async (actionId: string, title: string) => {
+    setRunningModel(actionId);
+    setSuccessMessage(null);
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actionId, empresaContext: currentEmpresa })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccessMessage(`¡Modelo '${title}' ejecutado exitosamente en segundo plano!`);
+        setTimeout(() => setSuccessMessage(null), 5000);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRunningModel(null);
+    }
+  };
   const cards = [
     {
+      actionId: "campaign",
       title: "Auto-Estructurar Campaña",
       desc: "Analiza el histórico y crea los 3 conjuntos de anuncios optimizados.",
       icon: <Zap size={24} className="text-amber-500" />,
@@ -14,6 +38,7 @@ export const MotorIaView = ({ currentEmpresa }: any) => {
       iconBg: "bg-amber-50 dark:bg-amber-900/20"
     },
     {
+      actionId: "hooks",
       title: "Generador de ganchos (anuncios)",
       desc: "Crea 10 ángulos visuales disruptivos para los creativos Base.",
       icon: <Sparkles size={24} className="text-purple-500" />,
@@ -22,6 +47,7 @@ export const MotorIaView = ({ currentEmpresa }: any) => {
       iconBg: "bg-purple-50 dark:bg-purple-900/20"
     },
     {
+      actionId: "content",
       title: "Planificador de Contenido 30D",
       desc: "Genera todo el calendario editorial orgánico del mes en base a los pilares.",
       icon: <Wand2 size={24} className="text-emerald-500" />,
@@ -30,6 +56,7 @@ export const MotorIaView = ({ currentEmpresa }: any) => {
       iconBg: "bg-emerald-50 dark:bg-emerald-900/20"
     },
     {
+      actionId: "scripts",
       title: "Guiones de Reels",
       desc: "Estructura gancho, cuerpo y llamado a la acción para formato corto.",
       icon: <Video size={24} className="text-blue-500" />,
@@ -51,6 +78,13 @@ export const MotorIaView = ({ currentEmpresa }: any) => {
         </div>
       </div>
 
+      {successMessage && (
+        <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 flex items-center gap-3 text-emerald-700 dark:text-emerald-400 animate-slide-in-up">
+          <CheckCircle2 size={20} />
+          <span className="font-medium text-sm">{successMessage}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cards.map((card, idx) => (
           <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6 flex items-start gap-4 hover:border-purple-200 dark:hover:border-purple-800 transition-colors">
@@ -62,8 +96,12 @@ export const MotorIaView = ({ currentEmpresa }: any) => {
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{card.title}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">{card.desc}</p>
               </div>
-              <button className={`mt-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${card.iconColor} hover:opacity-80 transition-opacity`}>
-                {card.action} <Zap size={10} />
+              <button 
+                onClick={() => handleRunModel(card.actionId, card.title)}
+                disabled={runningModel !== null}
+                className={`mt-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${card.iconColor} hover:opacity-80 transition-opacity disabled:opacity-50`}
+              >
+                {runningModel === card.actionId ? 'Procesando...' : card.action} <Zap size={10} />
               </button>
             </div>
           </div>

@@ -113,6 +113,17 @@ export interface IMetric extends Document {
     leads: number;
 }
 
+// 10. Lead (CRM)
+export interface ILead extends Document {
+    empresaId: string;
+    nombre: string;
+    fuente: string;
+    mensaje: string;
+    score: string;
+    stage: string; // 'nuevo', 'contactado', 'visita', 'negociacion', 'cerrado_ganado', 'cerrado_perdido'
+    valor?: number;
+    proyectoInteres?: string;
+}
 
 // --- Schemas ---
 
@@ -222,6 +233,16 @@ const MetricSchema = new Schema({
     leads: { type: Number, default: 0 }
 }, { timestamps: true });
 
+const LeadSchema = new Schema({
+    empresaId: { type: String, required: true, index: true },
+    nombre: { type: String, required: true },
+    fuente: { type: String, default: 'Organico' },
+    mensaje: { type: String },
+    score: { type: String, default: 'Medio' },
+    stage: { type: String, default: 'nuevo' },
+    valor: { type: Number },
+    proyectoInteres: { type: String }
+}, { timestamps: true });
 
 // --- Exports ---
 export const Company = mongoose.models.CompanyV3 || mongoose.model<ICompany>('CompanyV3', CompanySchema);
@@ -233,3 +254,4 @@ export const Creative = mongoose.models.CreativeV3 || mongoose.model<ICreative>(
 export const EditorialContent = mongoose.models.EditorialContentV3 || mongoose.model<IEditorialContent>('EditorialContentV3', EditorialContentSchema);
 export const Calendar = mongoose.models.CalendarV3 || mongoose.model<ICalendar>('CalendarV3', CalendarSchema);
 export const Metric = mongoose.models.MetricV3 || mongoose.model<IMetric>('MetricV3', MetricSchema);
+export const Lead = mongoose.models.LeadV3 || mongoose.model<ILead>('LeadV3', LeadSchema);

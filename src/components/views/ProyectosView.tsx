@@ -12,13 +12,7 @@ interface Project {
   date: string;
 }
 
-const mockProjects: Project[] = [
-  { id: '1', name: 'Fondo Alfa - Institucional', brand: 'Fortress', type: 'Estructuración de Capital', status: 'Activo', date: '2024-11-30' },
-  { id: '2', name: 'Desarrollo Capital Prime', brand: 'Fortress', type: 'Desarrollo', status: 'Planificación', date: '2025-01-15' },
-  { id: '3', name: 'Boulevard El Parque', brand: 'Sinergia', type: 'Marca Conjunta', status: 'Activo', date: '2026-05-20' },
-  { id: '4', name: 'Reserva Verde', brand: 'Crescendo', type: 'Comercialización', status: 'Activo', date: '2024-12-15' },
-  { id: '5', name: 'Campestre Los Pinos', brand: 'Crescendo', type: 'Administración', status: 'Planificación', date: '2025-03-01' },
-];
+// Eliminado mockProjects en favor de appData.proyectos
 
 const brandTypes = {
   Fortress: ['Estructuración de Capital', 'Desarrollo', 'Marca'],
@@ -32,8 +26,58 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
   
   // Modal State
   const [newProjectBrand, setNewProjectBrand] = useState<'Fortress' | 'Crescendo' | 'Sinergia'>('Fortress');
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectType, setNewProjectType] = useState(brandTypes['Fortress'][0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const filteredProjects = mockProjects.filter(p => p.brand === activeTab);
+  const proyectosGlobales = appData?.proyectos || [];
+
+  const filteredProjects = proyectosGlobales.filter((p: any) => {
+    // Sinergia son Marca Conjunta sin importar el empresaId original
+    if (activeTab === 'Sinergia') return p.tipo_proyecto === 'Marca Conjunta';
+    
+    // Fortress o Crescendo
+    if (activeTab === 'Fortress') return p.empresaId === 'fortress' && p.tipo_proyecto !== 'Marca Conjunta';
+    if (activeTab === 'Crescendo') return p.empresaId === 'crescendo' && p.tipo_proyecto !== 'Marca Conjunta';
+    
+    return false;
+  }).map((p: any) => ({
+    id: p._id,
+    name: p.nombre,
+    brand: p.tipo_proyecto === 'Marca Conjunta' ? 'Sinergia' : (p.empresaId === 'fortress' ? 'Fortress' : 'Crescendo'),
+    type: p.tipo_proyecto,
+    status: p.estado_comercial,
+    date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'
+  }));
+
+  const handleCreateProject = async () => {
+    if (!newProjectName) return;
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        empresaId: newProjectBrand === 'Sinergia' ? 'fortress' : newProjectBrand.toLowerCase(),
+        nombre: newProjectName,
+        tipo_proyecto: newProjectType,
+        estado_comercial: 'Lanzamiento'
+      };
+      
+      const res = await fetch('/api/proyectos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        setIsModalOpen(false);
+        setNewProjectName('');
+        if (refreshData) await refreshData();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getBrandStyles = (brand: string) => {
     switch(brand) {
@@ -104,7 +148,7 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProjects.map(project => {
+            {filteredProjects.map((project: any) => {
               const isBrandProject = project.type === 'Marca' || project.type === 'Marca Conjunta';
               
               return (
@@ -181,6 +225,8 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Proyecto</label>
                 <input 
                   type="text" 
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
                   placeholder="Ej. Fondo Residencial Zeta" 
                   className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
                 />
@@ -190,7 +236,11 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa Responsable</label>
                 <select 
                   value={newProjectBrand}
-                  onChange={(e) => setNewProjectBrand(e.target.value as 'Fortress' | 'Crescendo' | 'Sinergia')}
+                  onChange={(e) => {
+                    const brand = e.target.value as 'Fortress' | 'Crescendo' | 'Sinergia';
+                    setNewProjectBrand(brand);
+                    setNewProjectType(brandTypes[brand][0]);
+                  }}
                   className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
                 >
                   <option value="Fortress">Fortress Investment</option>
@@ -201,7 +251,11 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Proyecto</label>
-                <select className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white">
+                <select 
+                  value={newProjectType}
+                  onChange={(e) => setNewProjectType(e.target.value)}
+                  className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white"
+                >
                   {brandTypes[newProjectBrand].map((type, idx) => (
                     <option key={idx} value={type}>{type}</option>
                   ))}
@@ -216,8 +270,12 @@ export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpres
               >
                 Cancelar
               </button>
-              <button className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm">
-                Crear Proyecto
+              <button 
+                onClick={handleCreateProject}
+                disabled={isSubmitting || !newProjectName}
+                className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors shadow-sm"
+              >
+                {isSubmitting ? 'Creando...' : 'Crear Proyecto'}
               </button>
             </div>
           </div>

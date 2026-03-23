@@ -1,9 +1,27 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Fingerprint, Plus } from 'lucide-react';
 
 export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => {
+  const [base, setBase] = useState({ queEs: '', nicho: '', propuesta: '', tono: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/identidad', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empresaId: currentEmpresa.id, base, personas: [] })
+      });
+      if (res.ok && refreshData) await refreshData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="p-8 space-y-6 h-full flex flex-col overflow-y-auto bg-slate-50 dark:bg-[#0f1115]">
       <div className="flex justify-between items-end">
@@ -20,8 +38,12 @@ export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => 
           <button className="text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors uppercase tracking-wider">
             Cancelar
           </button>
-          <button className="bg-[#4F46E5] hover:bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors uppercase tracking-wider shadow-sm">
-            Guardar ADN
+          <button 
+            onClick={handleSave}
+            disabled={isSubmitting}
+            className="bg-[#4F46E5] hover:bg-indigo-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors uppercase tracking-wider shadow-sm"
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar ADN'}
           </button>
         </div>
       </div>
@@ -40,6 +62,8 @@ export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => 
             <div>
               <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">¿Qué es la marca?</label>
               <textarea 
+                value={base.queEs}
+                onChange={(e) => setBase({ ...base, queEs: e.target.value })}
                 className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-100 dark:border-gray-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-white min-h-[100px] resize-none"
                 placeholder="Definir la esencia de la empresa..."
               ></textarea>
@@ -49,6 +73,8 @@ export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => 
               <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Nicho / Mercado Objetivo</label>
               <input 
                 type="text"
+                value={base.nicho}
+                onChange={(e) => setBase({ ...base, nicho: e.target.value })}
                 className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-100 dark:border-gray-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-white"
                 placeholder="Ej: Inmobiliarias de lujo"
               />
@@ -57,6 +83,8 @@ export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => 
             <div>
               <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Propuesta única de valor</label>
               <textarea 
+                value={base.propuesta}
+                onChange={(e) => setBase({ ...base, propuesta: e.target.value })}
                 className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-100 dark:border-gray-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-white min-h-[100px] resize-none"
                 placeholder="¿Por qué elegirte a ti?"
               ></textarea>
@@ -66,6 +94,8 @@ export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => 
               <label className="block text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Tono de Comunicación</label>
               <input 
                 type="text"
+                value={base.tono}
+                onChange={(e) => setBase({ ...base, tono: e.target.value })}
                 className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-100 dark:border-gray-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-white"
                 placeholder="Ej: Profesional, cercano, disruptivo"
               />

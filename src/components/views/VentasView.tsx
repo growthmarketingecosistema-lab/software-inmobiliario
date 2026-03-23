@@ -8,29 +8,31 @@ type BrandType = 'fortress' | 'crescendo';
 const FORTRESS_STAGES = ['Prospecto Inversor', 'Reunión de Estructuración', 'Análisis de Ticket', 'Envío de Documentación', 'Cierre'];
 const CRESCENDO_STAGES = ['Nuevo Lead', 'Agendamiento de Visita', 'Visita/Recorrido Realizado', 'Oferta/Negociación', 'Ganado'];
 
-interface Lead {
-  id: string;
-  name: string;
-  stage: string;
-  value?: string;
-  meeting?: { type: 'virtual' | 'presencial', date: string };
-  brand: BrandType;
-}
-
-const initialLeads: Lead[] = [
-  { id: '1', name: 'Carlos Ramírez', stage: 'Reunión de Estructuración', value: '$250M COP', meeting: { type: 'virtual', date: 'Mañana, 10:00 AM' }, brand: 'fortress' },
-  { id: '2', name: 'Ana Torres', stage: 'Prospecto Inversor', value: 'Por definir', brand: 'fortress' },
-  { id: '3', name: 'Luis Gómez', stage: 'Agendamiento de Visita', meeting: { type: 'presencial', date: 'Viernes, 3:00 PM' }, brand: 'crescendo' },
-  { id: '4', name: 'María Peña', stage: 'Visita/Recorrido Realizado', value: '$400M COP', brand: 'crescendo' },
-];
-
-export const VentasView: React.FC<any> = ({ currentEmpresa, onConvert }) => {
+export const VentasView: React.FC<any> = ({ currentEmpresa, appData, refreshData, onConvert }) => {
   const [activeBrand, setActiveBrand] = useState<BrandType>('fortress');
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState('contacto'); // for the slide-over
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const stages = activeBrand === 'fortress' ? FORTRESS_STAGES : CRESCENDO_STAGES;
-  const filteredLeads = initialLeads.filter(l => l.brand === activeBrand);
+  const filteredLeads = (appData?.leads || []).filter((l: any) => l.empresaId === activeBrand);
+
+  const handleDropLead = async (leadId: string, newStage: string) => {
+    // Optimistic UI could go here, but since refreshData is fast we await it.
+    setIsUpdating(true);
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: leadId, stage: newStage })
+      });
+      if (res.ok && refreshData) await refreshData();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const brandStyles = {
     fortress: {
@@ -84,9 +86,21 @@ export const VentasView: React.FC<any> = ({ currentEmpresa, onConvert }) => {
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex gap-6 h-full min-w-max">
           {stages.map(stage => {
-            const stageLeads = filteredLeads.filter(l => l.stage === stage);
+            const stageLeads = filteredLeads.filter((l: any) => l.stage === stage);
             return (
-              <div key={stage} className="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900/30 rounded-xl p-3 border border-gray-100 dark:border-gray-800">
+              <div 
+                key={stage} 
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const leadId = e.dataTransfer.getData('leadId');
+                  if (leadId) handleDropLead(leadId, stage);
+                }}
+                className={`w-80 flex flex-col h-full bg-gray-50/50 dark:bg-gray-900/30 rounded-xl p-3 border border-gray-100 dark:border-gray-800 transition-all ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}
+              >
                 <div className={`flex justify-between items-center pb-3 mb-3 ${currentStyle.columnHeader}`}>
                   <h3 className="font-semibold text-sm">{stage}</h3>
                   <span className="text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -95,14 +109,19 @@ export const VentasView: React.FC<any> = ({ currentEmpresa, onConvert }) => {
                 </div>
                 
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                  {stageLeads.map(lead => (
+                  {stageLeads.map((lead: any) => (
                     <div 
-                      key={lead.id} 
+                      key={lead._id} 
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('leadId', lead._id);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
                       onClick={() => setSelectedLead(lead)}
-                      className={`bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 cursor-pointer transition-all ${currentStyle.cardHover}`}
+                      className={`bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing transition-all ${currentStyle.cardHover}`}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-gray-900 dark:text-white text-sm">{lead.name}</span>
+                        <span className="font-semibold text-gray-900 dark:text-white text-sm">{lead.nombre}</span>
                       </div>
                       <div className="flex justify-between items-center mt-3">
                         <span className={`text-xs px-2 py-1 rounded font-medium ${currentStyle.badge}`}>
@@ -140,7 +159,7 @@ export const VentasView: React.FC<any> = ({ currentEmpresa, onConvert }) => {
           <div className="w-full max-w-md bg-white dark:bg-gray-900 h-full shadow-2xl relative flex flex-col border-l border-gray-200 dark:border-gray-800 transform transition-transform animate-slide-in">
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedLead.name}</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedLead.nombre}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-xs px-2 py-1 rounded font-medium ${currentStyle.badge}`}>
                      {activeBrand === 'fortress' ? 'Fortress Investment' : 'Proyectos Crescendo'}

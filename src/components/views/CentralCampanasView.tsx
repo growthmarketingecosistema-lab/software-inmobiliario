@@ -5,6 +5,45 @@ import { Megaphone, Plus, PenSquare, Sparkles, AlertCircle, Save } from 'lucide-
 
 export const CentralCampanasView = ({ currentEmpresa, appData, refreshData }: any) => {
   const [generando, setGenerando] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSaveEstrategia = async () => {
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        empresaId: currentEmpresa.id,
+        nombre: 'Campaña Leads - Generada Automáticamente',
+        objetivo: 'Leads',
+        presupuesto: 5000000,
+        estado: 'Activo',
+        conjuntos: [
+          {
+            nombre: 'Conjunto Broad - Meta Ads',
+            tipo_segmento: 'Abierto',
+            audiencia: 'Interesados en Bienes Raíces',
+            presupuesto: 2500000,
+            estado: 'Activo',
+            anuncios: [
+              { nombre: 'Video Recorrido 1', formato: 'Reel', objetivo: 'Conversión', estado: 'Activo', hook: '¿Buscas hogar?' }
+            ]
+          }
+        ]
+      };
+
+      const res = await fetch('/api/estrategia', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok && refreshData) await refreshData();
+      setGenerando(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8 animate-fade-in overflow-y-auto h-full">
@@ -33,8 +72,12 @@ export const CentralCampanasView = ({ currentEmpresa, appData, refreshData }: an
             >
               Descartar
             </button>
-            <button className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors uppercase shadow-md shadow-blue-500/20">
-              <Save size={14} /> Aprobar Estructura
+            <button 
+              onClick={handleSaveEstrategia}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors uppercase shadow-md shadow-blue-500/20"
+            >
+              <Save size={14} /> {isSubmitting ? 'Guardando...' : 'Aprobar Estructura'}
             </button>
           </div>
         )}
