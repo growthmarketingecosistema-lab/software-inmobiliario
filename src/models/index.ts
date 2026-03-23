@@ -292,6 +292,17 @@ const BuyerPersonaSchema = new Schema({
     caracteristicas: { type: String, default: '' }
 }, { timestamps: true });
 
+// 13. Archivos de Proyecto
+const ProjectFileSchema = new Schema({
+    projectId: { type: String, required: true, index: true },
+    empresaId: { type: String, required: true, index: true },
+    nombre: { type: String, required: true },
+    tipo: { type: String, default: 'documento' }, // documento, ficha_tecnica, brochure, comercial, apoyo
+    mimeType: { type: String },
+    size: { type: Number },
+    data: { type: String }, // base64 encoded file content
+}, { timestamps: true });
+
 // --- Exports ---
 export const Company = mongoose.models.CompanyV3 || mongoose.model<ICompany>('CompanyV3', CompanySchema);
 export const Project = mongoose.models.ProjectV3 || mongoose.model<IProject>('ProjectV3', ProjectSchema);
@@ -305,4 +316,5 @@ export const Metric = mongoose.models.MetricV3 || mongoose.model<IMetric>('Metri
 export const Lead = mongoose.models.LeadV3 || mongoose.model<ILead>('LeadV3', LeadSchema);
 export const BrandIdentity = mongoose.models.BrandIdentityV3 || mongoose.model<IBrandIdentity>('BrandIdentityV3', BrandIdentitySchema);
 export const BuyerPersona = mongoose.models.BuyerPersonaV3 || mongoose.model<IBuyerPersona>('BuyerPersonaV3', BuyerPersonaSchema);
+export const ProjectFile = mongoose.models.ProjectFileV3 || mongoose.model('ProjectFileV3', ProjectFileSchema);
 

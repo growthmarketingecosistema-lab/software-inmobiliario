@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { FolderKanban, Plus, ExternalLink, X, Building2, Trash2, Edit3, Search, CheckCircle2, AlertCircle, ArrowLeft, Calendar, Target, TrendingUp, Users, FileText, Paperclip, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FolderKanban, Plus, ExternalLink, X, Building2, Trash2, Edit3, Search, CheckCircle2, AlertCircle, ArrowLeft, Calendar, Target, TrendingUp, Users, FileText, Paperclip, BarChart3, Upload, Download, Loader2 } from 'lucide-react';
 
 const brandTypes: Record<string, string[]> = {
   Fortress: ['Estructuración de Capital', 'Desarrollo', 'Comercialización', 'Administración', 'Marca'],
@@ -10,11 +10,22 @@ const brandTypes: Record<string, string[]> = {
 };
 
 const estadoOptions = ['Lanzamiento', 'Activo', 'Pre-venta', 'En curso', 'Completado', 'Pausado'];
+const fileTypeOptions = ['documento', 'ficha_tecnica', 'brochure', 'comercial', 'apoyo'];
+const fileTypeLabels: Record<string, string> = {
+  documento: 'Documento',
+  ficha_tecnica: 'Ficha Técnica',
+  brochure: 'Brochure',
+  comercial: 'Doc. Comercial',
+  apoyo: 'Material de Apoyo'
+};
 
 /* ─── Gestionar View (inner panel) ─── */
 const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any) => {
-  const [files, setFiles] = useState<string[]>([]);
-  const [newFileName, setNewFileName] = useState('');
+  const [files, setFiles] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [fileType, setFileType] = useState('documento');
+  const [fileFeedback, setFileFeedback] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const leads = (appData?.leads || []).filter((l: any) => l.proyectoInteres === raw.nombre || l.empresaId === raw.empresaId);
   const campanas = (appData?.estrategia || []).filter((c: any) => c.proyecto_id === raw._id);
@@ -26,11 +37,85 @@ const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any
   const leadsContactados = leads.filter((l: any) => ['contactado', 'visita'].includes(l.stage)).length;
   const leadsCerrados = leads.filter((l: any) => l.stage === 'cerrado_ganado').length;
 
-  const addFile = () => {
-    if (newFileName.trim()) {
-      setFiles(prev => [...prev, newFileName.trim()]);
-      setNewFileName('');
+  // Load files from MongoDB on mount
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const res = await fetch(`/api/files?projectId=${raw._id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFiles(data);
+        }
+      } catch (e) { console.error(e); }
+    };
+    if (raw._id) loadFiles();
+  }, [raw._id]);
+
+  // Upload file to MongoDB
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setFileFeedback('⚠️ El archivo excede 10MB.');
+      setTimeout(() => setFileFeedback(null), 3000);
+      return;
     }
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(',')[1];
+        const res = await fetch('/api/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            projectId: raw._id,
+            empresaId: raw.empresaId,
+            nombre: file.name,
+            tipo: fileType,
+            mimeType: file.type,
+            size: file.size,
+            data: base64
+          })
+        });
+        if (res.ok) {
+          const saved = await res.json();
+          setFiles(prev => [saved, ...prev]);
+          setFileFeedback('✅ Archivo guardado en MongoDB.');
+        } else {
+          const err = await res.json();
+          setFileFeedback(`⚠️ ${err.error}`);
+        }
+        setTimeout(() => setFileFeedback(null), 3000);
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setFileFeedback('⚠️ Error al subir archivo.');
+      setTimeout(() => setFileFeedback(null), 3000);
+      setIsUploading(false);
+    }
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Delete file from MongoDB
+  const handleDeleteFile = async (fileId: string) => {
+    if (!confirm('¿Eliminar este archivo?')) return;
+    try {
+      const res = await fetch(`/api/files?id=${fileId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFiles(prev => prev.filter(f => f._id !== fileId));
+        setFileFeedback('Archivo eliminado.');
+        setTimeout(() => setFileFeedback(null), 2000);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   return (
@@ -192,21 +277,50 @@ const ProyectoDetalleView = ({ project, raw, appData, onBack, refreshData }: any
             <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-3 uppercase tracking-wider flex items-center gap-2">
               <Paperclip size={14} /> Archivos del Proyecto ({files.length})
             </h3>
+
+            {fileFeedback && (
+              <div className="mb-3 px-3 py-2 bg-slate-50 dark:bg-gray-900/50 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                {fileFeedback}
+              </div>
+            )}
+
             <div className="space-y-2">
-              {files.map((f, i) => (
-                <div key={i} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-gray-900/50 rounded-lg">
-                  <span className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2"><FileText size={12} /> {f}</span>
-                  <button onClick={() => setFiles(prev => prev.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+              {files.map((f: any) => (
+                <div key={f._id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-gray-900/50 rounded-lg group">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <FileText size={14} className="text-purple-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{f.nombre}</p>
+                      <p className="text-[10px] text-slate-400">
+                        {fileTypeLabels[f.tipo] || f.tipo} · {f.size ? formatSize(f.size) : '—'} · {new Date(f.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => handleDeleteFile(f._id)}
+                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-1" title="Eliminar">
+                    <Trash2 size={12} />
+                  </button>
                 </div>
               ))}
-              <div className="flex gap-2 mt-2">
-                <input
-                  type="text" value={newFileName} onChange={e => setNewFileName(e.target.value)}
-                  className="flex-1 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-2 text-xs outline-none text-slate-800 dark:text-white"
-                  placeholder="Nombre del archivo (ej: Ficha técnica.pdf)"
-                  onKeyDown={e => e.key === 'Enter' && addFile()}
-                />
-                <button onClick={addFile} className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold">Adjuntar</button>
+
+              {/* Upload Controls */}
+              <div className="border-t border-slate-100 dark:border-gray-700 pt-3 mt-2 space-y-2">
+                <div className="flex gap-2">
+                  <select value={fileType} onChange={e => setFileType(e.target.value)}
+                    className="bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs outline-none text-slate-700 dark:text-slate-300">
+                    {fileTypeOptions.map(opt => <option key={opt} value={opt}>{fileTypeLabels[opt]}</option>)}
+                  </select>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                  >
+                    {isUploading ? <><Loader2 size={12} className="animate-spin" /> Subiendo...</> : <><Upload size={12} /> Subir Archivo</>}
+                  </button>
+                </div>
+                <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.zip" />
+                <p className="text-[10px] text-slate-400 text-center">PDF, Office, Imagen, Video · Máx 10MB · Se guarda en MongoDB</p>
               </div>
             </div>
           </div>
