@@ -24,7 +24,7 @@ const initialLeads: Lead[] = [
   { id: '4', name: 'María Peña', stage: 'Visita/Recorrido Realizado', value: '$400M COP', brand: 'crescendo' },
 ];
 
-export const VentasView: React.FC = () => {
+export const VentasView: React.FC<any> = ({ currentEmpresa, onConvert }) => {
   const [activeBrand, setActiveBrand] = useState<BrandType>('fortress');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('contacto'); // for the slide-over

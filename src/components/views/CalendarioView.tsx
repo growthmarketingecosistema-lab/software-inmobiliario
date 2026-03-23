@@ -18,7 +18,7 @@ const mockEvents: Event[] = [
   { id: '2', title: 'Estructuración Inv. - Carlos Ramírez', date: '2023-10-26', time: '10:00', type: 'fortress', location: 'virtual', status: 'Programada' },
 ];
 
-export const CalendarioView: React.FC = () => {
+export const CalendarioView: React.FC<any> = ({ currentEmpresa }) => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   // Simplified calendar grid logic for demonstration

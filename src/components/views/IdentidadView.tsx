@@ -3,7 +3,7 @@
 import React from 'react';
 import { Fingerprint, Plus } from 'lucide-react';
 
-export const IdentidadView = ({ currentEmpresa }: { currentEmpresa: { id: string, nombre: string } }) => {
+export const IdentidadView = ({ currentEmpresa, appData, refreshData }: any) => {
   return (
     <div className="p-8 space-y-6 h-full flex flex-col overflow-y-auto bg-slate-50 dark:bg-[#0f1115]">
       <div className="flex justify-between items-end">

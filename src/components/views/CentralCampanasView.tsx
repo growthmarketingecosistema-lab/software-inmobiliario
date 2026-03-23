@@ -3,25 +3,25 @@
 import React, { useState } from 'react';
 import { Megaphone, Plus, PenSquare, Sparkles, AlertCircle, Save } from 'lucide-react';
 
-export const CentralCampanasView = () => {
+export const CentralCampanasView = ({ currentEmpresa, appData, refreshData }: any) => {
   const [generando, setGenerando] = useState(false);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-fade-in">
+    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-fade-in overflow-y-auto h-full">
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3">
-          <div className="text-blue-700">
+          <div className="text-blue-700 dark:text-blue-400">
             <Megaphone size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Anuncios de Central de Campañas</h1>
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">INMOBILIARIA FORTALEZA - MOTOR DE PAUTA</p>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Anuncios de Central de Campañas</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">INMOBILIARIA FORTALEZA - MOTOR DE PAUTA</p>
           </div>
         </div>
         {!generando ? (
           <button 
             onClick={() => setGenerando(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors uppercase"
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors uppercase"
           >
             <PenSquare size={14} /> Reestructurar Campaña
           </button>
@@ -29,7 +29,7 @@ export const CentralCampanasView = () => {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setGenerando(false)}
-              className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase transition-colors"
+              className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase transition-colors"
             >
               Descartar
             </button>
@@ -40,35 +40,35 @@ export const CentralCampanasView = () => {
         )}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl shadow-sm relative overflow-hidden">
         {/* Left blue accent indicator */}
         <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500"></div>
         
         <div className="p-6 flex items-center justify-between">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
+            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-500 dark:text-blue-400 shrink-0">
               <Megaphone size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">OBJETIVO META:</span>
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">LEADS</span>
+                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">OBJETIVO META:</span>
+                <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold">LEADS</span>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-800">CAMPAÑA LIDERA - BULEVAR</h2>
+              <h2 className="text-xl font-extrabold text-slate-800 dark:text-white">CAMPAÑA LIDERA - BULEVAR</h2>
             </div>
           </div>
           
           <div className="text-right">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Presupuesto Global</p>
-            <p className="text-2xl font-black text-slate-800">5.000.000 <span className="text-sm font-medium text-slate-400">COP</span></p>
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Presupuesto Global</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white">5.000.000 <span className="text-sm font-medium text-slate-400 dark:text-slate-500">COP</span></p>
           </div>
         </div>
       </div>
 
       {!generando ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-16 flex flex-col items-center justify-center text-center">
-          <AlertCircle size={32} className="text-slate-200 mb-4" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Aún no hay conjuntos definidos</p>
+        <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-2xl p-16 flex flex-col items-center justify-center text-center">
+          <AlertCircle size={32} className="text-slate-200 dark:text-slate-600 mb-4" />
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Aún no hay conjuntos definidos</p>
         </div>
       ) : (
         <div className="flex justify-center mt-8">

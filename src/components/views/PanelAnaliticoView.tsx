@@ -3,69 +3,69 @@
 import React from 'react';
 import { BarChart3, TrendingUp, TrendingDown, Zap, LineChart } from 'lucide-react';
 
-export const PanelAnaliticoView = () => {
+export const PanelAnaliticoView = ({ currentEmpresa, appData }: any) => {
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in overflow-y-auto h-full">
       <div className="flex items-center gap-3">
-        <div className="text-blue-700">
+        <div className="text-blue-700 dark:text-blue-400">
           <BarChart3 size={28} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Rendimiento de Campaña</h1>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">ANÁLISIS DE ROI Y OPTIMIZACIÓN</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Rendimiento de Campaña</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">ANÁLISIS DE ROI Y OPTIMIZACIÓN</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Card 1 */}
-        <div className="bg-white p-6 rounded-2xl border-b-4 border-b-emerald-400 border border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border-b-4 border-b-emerald-400 border border-slate-200 dark:border-gray-700 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clientes Registrados</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Clientes Registrados</span>
             <TrendingUp size={16} className="text-emerald-500" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4">1.240</h2>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">1.240</h2>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">+18.4%</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Últimos 30 días</span>
+            <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded">+18.4%</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Últimos 30 días</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white p-6 rounded-2xl border-b-4 border-b-emerald-400 border border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border-b-4 border-b-emerald-400 border border-slate-200 dark:border-gray-700 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CTR (Interés)</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">CTR (Interés)</span>
             <TrendingUp size={16} className="text-emerald-500" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4">4,82%</h2>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">4,82%</h2>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">+0.5%</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Promedio Global</span>
+            <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded">+0.5%</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Promedio Global</span>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white p-6 rounded-2xl border-b-4 border-b-amber-400 border border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border-b-4 border-b-amber-400 border border-slate-200 dark:border-gray-700 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Costo por Plomo</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Costo por Lead</span>
             <TrendingUp size={16} className="text-emerald-500" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4">$2.4</h2>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">$2.4</h2>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded">-12.1%</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mejor Animación</span>
+            <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded">-12.1%</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Mejor Rendimiento</span>
           </div>
         </div>
 
         {/* Card 4 */}
-        <div className="bg-white p-6 rounded-2xl border-b-4 border-b-rose-400 border border-slate-200 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border-b-4 border-b-rose-400 border border-slate-200 dark:border-gray-700 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inversión</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Inversión</span>
             <TrendingDown size={16} className="text-rose-500" />
           </div>
-          <h2 className="text-3xl font-black text-slate-800 mb-4">$3.000</h2>
+          <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">$3.000</h2>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-rose-100 text-rose-700 text-[10px] font-bold rounded">+5.0%</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ejecutado</span>
+            <span className="px-2 py-0.5 bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold rounded">+5.0%</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ejecutado</span>
           </div>
         </div>
       </div>
@@ -91,56 +91,56 @@ export const PanelAnaliticoView = () => {
         </div>
 
         {/* Right Panel */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm flex flex-col">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl border border-slate-200 dark:border-gray-700 p-8 shadow-sm flex flex-col">
           <div className="flex items-center gap-2 mb-8">
             <Zap size={18} className="text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-800 tracking-wide">Fuentes de Escala</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white tracking-wide">Fuentes de Escala</h3>
           </div>
 
           <div className="space-y-6 flex-1">
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-slate-700 uppercase tracking-wider text-[10px]">Reels de Instagram</span>
-                <span className="text-slate-800">45%</span>
+                <span className="text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Reels de Instagram</span>
+                <span className="text-slate-800 dark:text-white">45%</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                 <div className="bg-pink-500 h-full w-[45%] rounded-full"></div>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-slate-700 uppercase tracking-wider text-[10px]">Feed de Facebook</span>
-                <span className="text-slate-800">30%</span>
+                <span className="text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Feed de Facebook</span>
+                <span className="text-slate-800 dark:text-white">30%</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                 <div className="bg-blue-500 h-full w-[30%] rounded-full"></div>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-slate-700 uppercase tracking-wider text-[10px]">WhatsApp Direct</span>
-                <span className="text-slate-800">15%</span>
+                <span className="text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">WhatsApp Direct</span>
+                <span className="text-slate-800 dark:text-white">15%</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                 <div className="bg-emerald-500 h-full w-[15%] rounded-full"></div>
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-slate-700 uppercase tracking-wider text-[10px]">Referidos / Otros</span>
-                <span className="text-slate-800">10%</span>
+                <span className="text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Referidos / Otros</span>
+                <span className="text-slate-800 dark:text-white">10%</span>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
                 <div className="bg-slate-400 h-full w-[10%] rounded-full"></div>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 bg-blue-50 text-blue-800 p-5 rounded-2xl border border-blue-100 relative">
-            <span className="absolute -top-3 left-4 bg-white border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
+          <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 p-5 rounded-2xl border border-blue-100 dark:border-blue-900/50 relative">
+            <span className="absolute -top-3 left-4 bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900/50 text-blue-600 dark:text-blue-400 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">
               Perspectiva de Multivela
             </span>
             <p className="text-xs font-medium italic mt-2 leading-relaxed">

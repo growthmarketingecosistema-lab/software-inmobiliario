@@ -17,7 +17,7 @@ const mockWonLeads: WonLead[] = [
   { id: '3', name: 'María Sandoval', brand: 'Proyectos Crescendo', dateStr: '10 Oct 2023', value: 'Casa Campestre' },
 ];
 
-export const PosventaView: React.FC = () => {
+export const PosventaView: React.FC<any> = ({ currentEmpresa }) => {
   const [selectedLead, setSelectedLead] = useState<WonLead | null>(null);
 
   const handleConvert = (lead: WonLead) => {

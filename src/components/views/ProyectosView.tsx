@@ -26,7 +26,7 @@ const brandTypes = {
   Sinergia: ['Marca Conjunta']
 };
 
-export const ProyectosView: React.FC<{ onOpenComandoMarca?: () => void }> = ({ onOpenComandoMarca }) => {
+export const ProyectosView: React.FC<any> = ({ onOpenComandoMarca, currentEmpresa, appData, refreshData }) => {
   const [activeTab, setActiveTab] = useState<'Fortress' | 'Crescendo' | 'Sinergia'>('Fortress');
   const [isModalOpen, setIsModalOpen] = useState(false);
   

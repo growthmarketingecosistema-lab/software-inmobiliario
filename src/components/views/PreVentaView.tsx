@@ -3,7 +3,7 @@
 import React from 'react';
 import { User, MessageCircle, Calendar as CalendarIcon, Phone, Mail, Clock, AlertCircle, Inbox } from 'lucide-react';
 
-export const PreVentaView: React.FC = () => {
+export const PreVentaView: React.FC<any> = ({ currentEmpresa }) => {
   // Simulando leads en tiempo real
   const [leads, setLeads] = React.useState([
     { id: 1, name: "Carlos Ramírez", source: "Meta Ads", date: "Hace 10 min", message: "Interesado en proyecto Crescendo para compra de vivienda familiar.", score: "Alto" },

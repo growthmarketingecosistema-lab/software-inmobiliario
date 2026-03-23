@@ -3,7 +3,7 @@
 import React from 'react';
 import { BrainCircuit, Zap, Sparkles, Wand2, Video } from 'lucide-react';
 
-export const MotorIaView = () => {
+export const MotorIaView = ({ currentEmpresa }: any) => {
   const cards = [
     {
       title: "Auto-Estructurar Campaña",
@@ -11,7 +11,7 @@ export const MotorIaView = () => {
       icon: <Zap size={24} className="text-amber-500" />,
       action: "Ejecutar Modelo",
       iconColor: "text-amber-500",
-      iconBg: "bg-amber-50"
+      iconBg: "bg-amber-50 dark:bg-amber-900/20"
     },
     {
       title: "Generador de ganchos (anuncios)",
@@ -19,7 +19,7 @@ export const MotorIaView = () => {
       icon: <Sparkles size={24} className="text-purple-500" />,
       action: "Ejecutar Modelo",
       iconColor: "text-purple-500",
-      iconBg: "bg-purple-50"
+      iconBg: "bg-purple-50 dark:bg-purple-900/20"
     },
     {
       title: "Planificador de Contenido 30D",
@@ -27,7 +27,7 @@ export const MotorIaView = () => {
       icon: <Wand2 size={24} className="text-emerald-500" />,
       action: "Ejecutar Modelo",
       iconColor: "text-emerald-500",
-      iconBg: "bg-emerald-50"
+      iconBg: "bg-emerald-50 dark:bg-emerald-900/20"
     },
     {
       title: "Guiones de Reels",
@@ -35,32 +35,32 @@ export const MotorIaView = () => {
       icon: <Video size={24} className="text-blue-500" />,
       action: "Ejecutar Modelo",
       iconColor: "text-blue-500",
-      iconBg: "bg-blue-50"
+      iconBg: "bg-blue-50 dark:bg-blue-900/20"
     }
   ];
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in">
+    <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in overflow-y-auto h-full">
       <div className="flex items-center gap-3">
-        <div className="text-purple-600">
+        <div className="text-purple-600 dark:text-purple-400">
           <BrainCircuit size={28} />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Consola Motor IA</h1>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">FORTALEZA INMOBILIARIA - INTELIGENCIA ARTIFICIAL</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Consola Motor IA</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-0.5">FORTALEZA INMOBILIARIA - INTELIGENCIA ARTIFICIAL</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cards.map((card, idx) => (
-          <div key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex items-start gap-4 hover:border-purple-200 transition-colors">
+          <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm p-6 flex items-start gap-4 hover:border-purple-200 dark:hover:border-purple-800 transition-colors">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
               {card.icon}
             </div>
             <div className="flex flex-col h-full justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-1">{card.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed max-w-sm">{card.desc}</p>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{card.title}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">{card.desc}</p>
               </div>
               <button className={`mt-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${card.iconColor} hover:opacity-80 transition-opacity`}>
                 {card.action} <Zap size={10} />

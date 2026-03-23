@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { UserCircle, Target, TrendingUp, BarChart3, Clock, Plus } from 'lucide-react';
-import { mockData } from '@/lib/mockData';
+// Removed mockData import
 
 // Shared Components
 const Card = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => (
@@ -25,7 +25,7 @@ const Badge = ({ children, type = 'default' }: { children: React.ReactNode, type
   );
 };
 
-export const DashboardView = ({ currentEmpresa }: { currentEmpresa: { id: string, nombre: string } }) => (
+export const DashboardView = ({ currentEmpresa, appData, onNavigate }: any) => (
   <div className="p-8 space-y-6 h-full flex flex-col overflow-y-auto">
     <div className="flex justify-between items-end">
       <div>
@@ -40,10 +40,10 @@ export const DashboardView = ({ currentEmpresa }: { currentEmpresa: { id: string
     {/* KPIs Rápidos */}
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {[
-        { title: 'Leads Captados', value: mockData.metricasGenerales.leads, trend: '+12%', icon: UserCircle, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
-        { title: 'CPL Promedio', value: mockData.metricasGenerales.cplPromedio, trend: '-5%', icon: Target, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
-        { title: 'ROI Global', value: mockData.metricasGenerales.roi, trend: '+24%', icon: TrendingUp, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
-        { title: 'Inversión Activa', value: mockData.metricasGenerales.inversion, trend: '+2%', icon: BarChart3, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30' },
+        { title: 'Leads Captados', value: appData.metricasGenerales?.leads || 0, trend: '+12%', icon: UserCircle, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
+        { title: 'CPL Promedio', value: appData.metricasGenerales?.cplPromedio || 0, trend: '-5%', icon: Target, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
+        { title: 'ROI Global', value: appData.metricasGenerales?.roi || 0, trend: '+24%', icon: TrendingUp, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
+        { title: 'Inversión Activa', value: appData.metricasGenerales?.inversion || 0, trend: '+2%', icon: BarChart3, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30' },
       ].map((kpi, i) => (
         <Card key={i} className="p-5">
           <div className="flex justify-between items-start">
@@ -80,7 +80,7 @@ export const DashboardView = ({ currentEmpresa }: { currentEmpresa: { id: string
               </tr>
             </thead>
             <tbody>
-              {mockData.proyectos.filter(p => p.empresaId === currentEmpresa.id).map((p, i) => (
+              {appData.proyectos?.filter((p: any) => p.empresaId === currentEmpresa.id).map((p: any, i: number) => (
                 <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <td className="py-3 text-sm font-medium text-gray-900 dark:text-white">{p.nombre}</td>
                   <td className="py-3">
@@ -92,7 +92,7 @@ export const DashboardView = ({ currentEmpresa }: { currentEmpresa: { id: string
                   <td className="py-3 text-sm font-medium text-gray-900 dark:text-white">{p.ticket}</td>
                 </tr>
               ))}
-              {mockData.proyectos.filter(p => p.empresaId === currentEmpresa.id).length === 0 && (
+              {(!appData.proyectos || appData.proyectos.filter((p: any) => p.empresaId === currentEmpresa.id).length === 0) && (
                 <tr>
                   <td colSpan={4} className="py-8 text-center text-gray-500 dark:text-gray-400">
                     No hay proyectos activos para esta empresa.
@@ -110,14 +110,14 @@ export const DashboardView = ({ currentEmpresa }: { currentEmpresa: { id: string
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">Planner Semanal</h3>
         </div>
         <div className="space-y-4 flex-1 overflow-y-auto pr-2">
-          {mockData.planner.map((tarea, i) => (
+          {appData.planner?.map((tarea: any, i: number) => (
             <div key={i} className="flex gap-3 items-start border-l-2 border-blue-500 pl-3 py-1">
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{tarea.contenido}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{tarea.tema || tarea.contenido}</p>
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center gap-1"><Clock size={12}/> {tarea.publicacion}</span>
+                  <span className="flex items-center gap-1"><Clock size={12}/> {tarea.fecha || tarea.publicacion}</span>
                   <span>•</span>
-                  <span>{tarea.formato}</span>
+                  <span>{tarea.tipo_contenido || tarea.formato}</span>
                 </div>
               </div>
             </div>
