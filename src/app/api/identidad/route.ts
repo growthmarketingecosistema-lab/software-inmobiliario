@@ -1,39 +1,43 @@
 /**
  * API: /api/identidad
- * Acción: Actualiza la Identidad de Marca (ADN) y los Buyer Personas.
- * Persiste los datos en la colección de Company en MongoDB.
+ * GET: Obtener identidad de marca por empresaId
+ * PUT: Crear o actualizar identidad de marca (upsert)
  */
 
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Company } from '@/models';
+import { BrandIdentity } from '@/models';
+
+export async function GET(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const empresaId = searchParams.get('empresaId');
+        if (!empresaId) return NextResponse.json({ error: 'empresaId requerido' }, { status: 400 });
+
+        await connectDB();
+        const identity = await BrandIdentity.findOne({ empresaId });
+        return NextResponse.json(identity || { empresaId, esencia: '', nicho: '', propuesta: '', tono: '' });
+    } catch (error) {
+        console.error("Error en GET /api/identidad:", error);
+        return NextResponse.json({ error: 'Error al obtener identidad' }, { status: 500 });
+    }
+}
 
 export async function PUT(req: Request) {
     try {
-        const { empresaId, base } = await req.json();
-        await connectDB();
+        const { empresaId, esencia, nicho, propuesta, tono } = await req.json();
+        if (!empresaId) return NextResponse.json({ error: 'empresaId requerido' }, { status: 400 });
 
-        // Guardamos la identidad como campos extra en la empresa
-        const updated = await Company.findOneAndUpdate(
+        await connectDB();
+        const updated = await BrandIdentity.findOneAndUpdate(
             { empresaId },
-            {
-                $set: {
-                    'identidad.esencia': base?.esencia || '',
-                    'identidad.nicho': base?.nicho || '',
-                    'identidad.propuesta': base?.propuesta || '',
-                    'identidad.tono': base?.tono || '',
-                }
-            },
-            { new: true, upsert: false }
+            { esencia, nicho, propuesta, tono },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
-        if (!updated) {
-            return NextResponse.json({ error: 'Empresa no encontrada' }, { status: 404 });
-        }
-
-        return NextResponse.json({ success: true, empresaId, identidad: updated });
+        return NextResponse.json({ success: true, data: updated });
     } catch (error) {
-        console.error("Error en API PUT /api/identidad:", error);
+        console.error("Error en PUT /api/identidad:", error);
         return NextResponse.json({ error: 'Error al actualizar identidad' }, { status: 500 });
     }
 }

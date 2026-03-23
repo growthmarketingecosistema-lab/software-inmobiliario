@@ -244,6 +244,54 @@ const LeadSchema = new Schema({
     proyectoInteres: { type: String }
 }, { timestamps: true });
 
+// 11. Identidad de Marca
+export interface IBrandIdentity extends Document {
+    empresaId: string;
+    esencia: string;
+    nicho: string;
+    propuesta: string;
+    tono: string;
+}
+
+// 12. Buyer Persona
+export interface IBuyerPersona extends Document {
+    empresaId: string;
+    nombre: string;
+    edad: string;
+    ocupacion: string;
+    ingresos: string;
+    problema: string;
+    deseo: string;
+    objecion: string;
+    motivacion: string;
+    comportamiento_compra: string;
+    necesidades: string;
+    caracteristicas: string;
+}
+
+const BrandIdentitySchema = new Schema({
+    empresaId: { type: String, required: true, unique: true, index: true },
+    esencia: { type: String, default: '' },
+    nicho: { type: String, default: '' },
+    propuesta: { type: String, default: '' },
+    tono: { type: String, default: '' }
+}, { timestamps: true });
+
+const BuyerPersonaSchema = new Schema({
+    empresaId: { type: String, required: true, index: true },
+    nombre: { type: String, required: true },
+    edad: { type: String, default: '' },
+    ocupacion: { type: String, default: '' },
+    ingresos: { type: String, default: '' },
+    problema: { type: String, default: '' },
+    deseo: { type: String, default: '' },
+    objecion: { type: String, default: '' },
+    motivacion: { type: String, default: '' },
+    comportamiento_compra: { type: String, default: '' },
+    necesidades: { type: String, default: '' },
+    caracteristicas: { type: String, default: '' }
+}, { timestamps: true });
+
 // --- Exports ---
 export const Company = mongoose.models.CompanyV3 || mongoose.model<ICompany>('CompanyV3', CompanySchema);
 export const Project = mongoose.models.ProjectV3 || mongoose.model<IProject>('ProjectV3', ProjectSchema);
@@ -255,3 +303,6 @@ export const EditorialContent = mongoose.models.EditorialContentV3 || mongoose.m
 export const Calendar = mongoose.models.CalendarV3 || mongoose.model<ICalendar>('CalendarV3', CalendarSchema);
 export const Metric = mongoose.models.MetricV3 || mongoose.model<IMetric>('MetricV3', MetricSchema);
 export const Lead = mongoose.models.LeadV3 || mongoose.model<ILead>('LeadV3', LeadSchema);
+export const BrandIdentity = mongoose.models.BrandIdentityV3 || mongoose.model<IBrandIdentity>('BrandIdentityV3', BrandIdentitySchema);
+export const BuyerPersona = mongoose.models.BuyerPersonaV3 || mongoose.model<IBuyerPersona>('BuyerPersonaV3', BuyerPersonaSchema);
+

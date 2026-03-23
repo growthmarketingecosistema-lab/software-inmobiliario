@@ -1,17 +1,17 @@
 /**
  * API: /api/data
- * Trae empresas, proyectos, leads y datos de crecimiento desde MongoDB.
+ * Trae empresas, proyectos, leads, identidad y personas desde MongoDB.
  */
 
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Company, Project, EditorialContent, Calendar, Campaign, AdSet, Ad, Metric, Lead } from '@/models';
+import { Company, Project, EditorialContent, Calendar, Campaign, AdSet, Ad, Metric, Lead, BrandIdentity, BuyerPersona } from '@/models';
 
 export async function GET() {
     try {
         await connectDB();
 
-        const [companies, projects, contents, calendars, campaignsRaw, adsetsRaw, adsRaw, metrics, leads] = await Promise.all([
+        const [companies, projects, contents, calendars, campaignsRaw, adsetsRaw, adsRaw, metrics, leads, identities, personas] = await Promise.all([
             Company.find({}),
             Project.find({}),
             EditorialContent.find({}),
@@ -20,7 +20,9 @@ export async function GET() {
             AdSet.find({}),
             Ad.find({}),
             Metric.find({}),
-            Lead.find({})
+            Lead.find({}),
+            BrandIdentity.find({}),
+            BuyerPersona.find({})
         ]);
 
         // Reconstrucción del árbol relacional V3
@@ -42,6 +44,8 @@ export async function GET() {
             empresas: companies.map(c => ({ id: c.empresaId, nombre: c.nombre })),
             proyectos: projects,
             leads: leads,
+            identidades: identities,
+            personas: personas,
             planner: calendars,
             estrategia: campaigns,
             metricasGenerales: {
